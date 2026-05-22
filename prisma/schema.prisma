@@ -1,0 +1,375 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  SCRUM_MASTER
+  MEMBER
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum CardStatus {
+  BACKLOG
+  DOING
+  VALIDATION
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  MOVE
+  ASSIGN
+  COMMENT
+  INVITE
+  JOIN
+  REMOVE_MEMBER
+  START_SPRINT
+  END_SPRINT
+}
+
+enum NotificationType {
+  CARD_ASSIGNED
+  CARD_COMMENTED
+  MENTIONED
+  SPRINT_STARTED
+  SPRINT_ENDED
+  ADDED_TO_PROJECT
+  REMOVED_FROM_PROJECT
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  name               String
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  avatarUrl          String?   @map("avatar_url")
+  isSystemAdmin      Boolean   @default(false) @map("is_system_admin")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  projectsCreated       Project[]                    @relation("ProjectCreator")
+  projectMembers        ProjectMember[]
+  invitationsSent       ProjectInvitation[]          @relation("InvitedBy")
+  cardsCreated          Card[]                       @relation("CardCreator")
+  cardsAssigned         Card[]                       @relation("CardAssignee")
+  comments              Comment[]
+  checklistsCompleted   ChecklistItem[]              @relation("ChecklistCompleter")
+  attachmentsUploaded   Attachment[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  emailLogs             EmailLog[]
+  notificationPrefs     UserNotificationPreference[]
+  passwordResetTokens   PasswordResetToken[]
+  cardStatusTransitions CardStatusTransition[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  createdById String    @map("created_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  archivedAt  DateTime? @map("archived_at")
+
+  createdBy   User                @relation("ProjectCreator", fields: [createdById], references: [id])
+  members     ProjectMember[]
+  invitations ProjectInvitation[]
+  sprints     Sprint[]
+  cards       Card[]
+  tags        Tag[]
+  auditLogs   AuditLog[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String    @id @default(uuid())
+  projectId String    @map("project_id")
+  userId    String    @map("user_id")
+  role      Role
+  joinedAt  DateTime  @default(now()) @map("joined_at")
+  removedAt DateTime? @map("removed_at")
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@map("project_members")
+}
+
+model ProjectInvitation {
+  id          String    @id @default(uuid())
+  projectId   String    @map("project_id")
+  email       String
+  role        Role
+  invitedById String    @map("invited_by_id")
+  token       String    @unique
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  project   Project @relation(fields: [projectId], references: [id])
+  invitedBy User    @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  @@map("project_invitations")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("password_reset_tokens")
+}
+
+model Sprint {
+  id               String       @id @default(uuid())
+  projectId        String       @map("project_id")
+  name             String
+  goal             String?
+  plannedStartDate DateTime     @map("planned_start_date") @db.Date
+  plannedEndDate   DateTime     @map("planned_end_date") @db.Date
+  startedAt        DateTime?    @map("started_at")
+  endedAt          DateTime?    @map("ended_at")
+  status           SprintStatus @default(PLANNED)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  project         Project                @relation(fields: [projectId], references: [id])
+  cards           Card[]
+  cardSnapshots   SprintCardSnapshot[]
+  cardTransitions CardStatusTransition[]
+
+  @@map("sprints")
+}
+
+model Card {
+  id          String     @id @default(uuid())
+  projectId   String     @map("project_id")
+  sprintId    String?    @map("sprint_id")
+  title       String
+  description String?
+  assigneeId  String?    @map("assignee_id")
+  priority    Priority   @default(MEDIUM)
+  status      CardStatus @default(BACKLOG)
+  storyPoints Int?       @map("story_points")
+  dueDate     DateTime?  @map("due_date") @db.Date
+  position    Int        @default(0)
+  createdById String     @map("created_by_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  archivedAt  DateTime?  @map("archived_at")
+
+  project     Project                @relation(fields: [projectId], references: [id])
+  sprint      Sprint?                @relation(fields: [sprintId], references: [id])
+  assignee    User?                  @relation("CardAssignee", fields: [assigneeId], references: [id])
+  createdBy   User                   @relation("CardCreator", fields: [createdById], references: [id])
+  tags        CardTag[]
+  comments    Comment[]
+  checklists  ChecklistItem[]
+  attachments Attachment[]
+  transitions CardStatusTransition[]
+
+  @@map("cards")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  name      String
+  color     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project   @relation(fields: [projectId], references: [id])
+  cards   CardTag[]
+
+  @@unique([projectId, name])
+  @@map("tags")
+}
+
+model CardTag {
+  cardId String @map("card_id")
+  tagId  String @map("tag_id")
+
+  card Card @relation(fields: [cardId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([cardId, tagId])
+  @@map("card_tags")
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  cardId    String    @map("card_id")
+  authorId  String    @map("author_id")
+  body      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  card   Card @relation(fields: [cardId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+
+  @@map("comments")
+}
+
+model ChecklistItem {
+  id            String    @id @default(uuid())
+  cardId        String    @map("card_id")
+  text          String
+  isDone        Boolean   @default(false) @map("is_done")
+  position      Int       @default(0)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+  completedById String?   @map("completed_by_id")
+
+  card        Card  @relation(fields: [cardId], references: [id])
+  completedBy User? @relation("ChecklistCompleter", fields: [completedById], references: [id])
+
+  @@map("checklist_items")
+}
+
+model Attachment {
+  id           String    @id @default(uuid())
+  cardId       String    @map("card_id")
+  uploadedById String    @map("uploaded_by_id")
+  filename     String
+  mimeType     String    @map("mime_type")
+  sizeBytes    Int       @map("size_bytes")
+  storagePath  String    @map("storage_path")
+  uploadedAt   DateTime  @default(now()) @map("uploaded_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  card       Card @relation(fields: [cardId], references: [id])
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@map("attachments")
+}
+
+model CardStatusTransition {
+  id         String      @id @default(uuid())
+  cardId     String      @map("card_id")
+  fromStatus CardStatus? @map("from_status")
+  toStatus   CardStatus  @map("to_status")
+  sprintId   String?     @map("sprint_id")
+  movedById  String      @map("moved_by_id")
+  movedAt    DateTime    @default(now()) @map("moved_at")
+
+  card    Card    @relation(fields: [cardId], references: [id])
+  sprint  Sprint? @relation(fields: [sprintId], references: [id])
+  movedBy User    @relation(fields: [movedById], references: [id])
+
+  @@map("card_status_transitions")
+}
+
+model SprintCardSnapshot {
+  id           String     @id @default(uuid())
+  sprintId     String     @map("sprint_id")
+  snapshotDate DateTime   @map("snapshot_date") @db.Date
+  cardId       String     @map("card_id")
+  status       CardStatus
+  storyPoints  Int?       @map("story_points")
+
+  sprint Sprint @relation(fields: [sprintId], references: [id])
+
+  @@unique([sprintId, snapshotDate, cardId])
+  @@map("sprint_card_snapshots")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  projectId  String      @map("project_id")
+  actorId    String      @map("actor_id")
+  entityType String      @map("entity_type")
+  entityId   String      @map("entity_id")
+  action     AuditAction
+  changes    Json?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id])
+  actor   User    @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  recipientId String           @map("recipient_id")
+  type        NotificationType
+  title       String
+  body        String
+  entityType  String?          @map("entity_type")
+  entityId    String?          @map("entity_id")
+  readAt      DateTime?        @map("read_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  recipient User       @relation(fields: [recipientId], references: [id])
+  emailLogs EmailLog[]
+
+  @@map("notifications")
+}
+
+model EmailLog {
+  id             String      @id @default(uuid())
+  recipientId    String      @map("recipient_id")
+  notificationId String?     @map("notification_id")
+  toEmail        String      @map("to_email")
+  subject        String
+  status         EmailStatus @default(PENDING)
+  error          String?
+  sentAt         DateTime?   @map("sent_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  recipient    User          @relation(fields: [recipientId], references: [id])
+  notification Notification? @relation(fields: [notificationId], references: [id])
+
+  @@map("email_logs")
+}
+
+model UserNotificationPreference {
+  id               String           @id @default(uuid())
+  userId           String           @map("user_id")
+  notificationType NotificationType @map("notification_type")
+  emailEnabled     Boolean          @default(true) @map("email_enabled")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, notificationType])
+  @@map("user_notification_preferences")
+}
