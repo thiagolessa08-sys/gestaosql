@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,8 +30,10 @@ function ConviteForm() {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
-    const password = formData.get("password") as string
-    const confirm = formData.get("confirm") as string
+    const password = formData.get("password")
+    if (typeof password !== "string" || !password) return
+    const confirm = formData.get("confirm")
+    if (typeof confirm !== "string" || !confirm) return
     if (password !== confirm) {
       setError("As senhas não coincidem.")
       return
@@ -50,9 +53,9 @@ function ConviteForm() {
           <CardDescription>Sua conta foi criada com sucesso. Faça login para acessar o sistema.</CardDescription>
         </CardHeader>
         <CardContent>
-          <a href="/login" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/login" className="text-sm text-muted-foreground hover:underline">
             Ir para o login
-          </a>
+          </Link>
         </CardContent>
       </Card>
     )

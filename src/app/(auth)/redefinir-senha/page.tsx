@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,9 +23,9 @@ function RedefinirSenhaForm() {
           <CardDescription>O link de redefinição é inválido ou expirou.</CardDescription>
         </CardHeader>
         <CardContent>
-          <a href="/esqueci-senha" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/esqueci-senha" className="text-sm text-muted-foreground hover:underline">
             Solicitar novo link
-          </a>
+          </Link>
         </CardContent>
       </Card>
     )
@@ -34,8 +35,10 @@ function RedefinirSenhaForm() {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
-    const password = formData.get("password") as string
-    const confirm = formData.get("confirm") as string
+    const password = formData.get("password")
+    if (typeof password !== "string" || !password) return
+    const confirm = formData.get("confirm")
+    if (typeof confirm !== "string" || !confirm) return
     if (password !== confirm) {
       setError("As senhas não coincidem.")
       return
@@ -55,9 +58,9 @@ function RedefinirSenhaForm() {
           <CardDescription>Sua senha foi alterada com sucesso.</CardDescription>
         </CardHeader>
         <CardContent>
-          <a href="/login" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/login" className="text-sm text-muted-foreground hover:underline">
             Ir para o login
-          </a>
+          </Link>
         </CardContent>
       </Card>
     )

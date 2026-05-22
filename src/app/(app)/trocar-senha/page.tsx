@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 export default function TrocarSenhaPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,8 +16,10 @@ export default function TrocarSenhaPage() {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
-    const newPassword = formData.get("newPassword") as string
-    const confirm = formData.get("confirm") as string
+    const newPassword = formData.get("newPassword")
+    if (typeof newPassword !== "string" || !newPassword) return
+    const confirm = formData.get("confirm")
+    if (typeof confirm !== "string" || !confirm) return
     if (newPassword !== confirm) {
       setError("As senhas não coincidem.")
       return
@@ -25,11 +29,11 @@ export default function TrocarSenhaPage() {
     await new Promise((r) => setTimeout(r, 500))
     setLoading(false)
     // After successful change, redirect to /projetos
-    window.location.href = "/projetos"
+    router.push("/projetos")
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="flex justify-center">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Trocar senha</CardTitle>

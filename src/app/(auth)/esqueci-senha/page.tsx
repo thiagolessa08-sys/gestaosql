@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,9 +30,9 @@ export default function EsqueciSenhaPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <a href="/login" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/login" className="text-sm text-muted-foreground hover:underline">
             Voltar para o login
-          </a>
+          </Link>
         </CardContent>
       </Card>
     )
@@ -53,9 +54,9 @@ export default function EsqueciSenhaPage() {
             {loading ? "Enviando..." : "Enviar link"}
           </Button>
           <div className="text-center text-sm">
-            <a href="/login" className="text-muted-foreground hover:underline">
+            <Link href="/login" className="text-muted-foreground hover:underline">
               Voltar para o login
-            </a>
+            </Link>
           </div>
         </form>
       </CardContent>

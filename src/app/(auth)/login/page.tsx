@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,9 +56,9 @@ function LoginForm() {
             {loading ? "Entrando..." : "Entrar"}
           </Button>
           <div className="text-center text-sm">
-            <a href="/esqueci-senha" className="text-muted-foreground hover:underline">
+            <Link href="/esqueci-senha" className="text-muted-foreground hover:underline">
               Esqueci minha senha
-            </a>
+            </Link>
           </div>
         </form>
       </CardContent>

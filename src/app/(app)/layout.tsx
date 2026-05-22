@@ -1,10 +1,11 @@
+import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { auth, signOut } from "@/server/auth/config"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
 
