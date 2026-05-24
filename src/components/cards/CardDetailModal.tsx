@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -17,7 +17,10 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { UserPicker } from "@/components/shared/UserPicker"
 import { TagPicker } from "@/components/shared/TagPicker"
-import { updateCardAction, archiveCardAction } from "@/server/actions/cards"
+import { updateCardAction, archiveCardAction, getCardCommentsAction, getCardChecklistAction, getCardAttachmentsAction } from "@/server/actions/cards"
+import { CommentList } from "@/components/collaboration/CommentList"
+import { ChecklistSection } from "@/components/collaboration/ChecklistSection"
+import { AttachmentSection } from "@/components/collaboration/AttachmentSection"
 
 interface Tag {
   id: string
@@ -43,12 +46,40 @@ interface Card {
   tags: { tag: Tag }[]
 }
 
+// Types inferred from the action return types
+type CommentItem = {
+  id: string
+  body: string
+  createdAt: Date
+  authorId: string
+  author: { id: string; name: string | null; avatarUrl: string | null }
+}
+
+type ChecklistItem = {
+  id: string
+  text: string
+  isDone: boolean
+  position: number
+  completedAt: Date | null
+  completedById: string | null
+}
+
+type AttachmentItem = {
+  id: string
+  filename: string
+  size: number
+  mimeType: string
+  uploadedAt: Date
+  uploader: { name: string | null } | null
+}
+
 interface Props {
   card: Card
   members: Member[]
   allTags: Tag[]
   open: boolean
   onClose: () => void
+  currentUserId: string
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -58,7 +89,7 @@ const STATUS_LABELS: Record<string, string> = {
   DONE: "Concluído",
 }
 
-export function CardDetailModal({ card, members, allTags, open, onClose }: Props) {
+export function CardDetailModal({ card, members, allTags, open, onClose, currentUserId }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description ?? "")
@@ -71,6 +102,71 @@ export function CardDetailModal({ card, members, allTags, open, onClose }: Props
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(card.tags.map((ct) => ct.tag.id))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Collaboration data
+  const [comments, setComments] = useState<CommentItem[]>([])
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
+  const [attachments, setAttachments] = useState<AttachmentItem[]>([])
+  const [loadingCollab, setLoadingCollab] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+
+    let cancelled = false
+    setLoadingCollab(true)
+
+    Promise.all([
+      getCardCommentsAction(card.id),
+      getCardChecklistAction(card.id),
+      getCardAttachmentsAction(card.id),
+    ]).then(([commentsRes, checklistRes, attachmentsRes]) => {
+      if (cancelled) return
+      if (commentsRes.success && commentsRes.data) {
+        setComments(
+          commentsRes.data.map((c) => ({
+            id: c.id,
+            body: c.body,
+            createdAt: c.createdAt,
+            authorId: c.authorId,
+            author: {
+              id: c.author.id,
+              name: c.author.name ?? null,
+              avatarUrl: c.author.avatarUrl ?? null,
+            },
+          }))
+        )
+      }
+      if (checklistRes.success && checklistRes.data) {
+        setChecklistItems(
+          checklistRes.data.map((i) => ({
+            id: i.id,
+            text: i.text,
+            isDone: i.isDone,
+            position: i.position,
+            completedAt: i.completedAt ?? null,
+            completedById: i.completedById ?? null,
+          }))
+        )
+      }
+      if (attachmentsRes.success && attachmentsRes.data) {
+        setAttachments(
+          attachmentsRes.data.map((a) => ({
+            id: a.id,
+            filename: a.filename,
+            size: a.sizeBytes,
+            mimeType: a.mimeType,
+            uploadedAt: a.uploadedAt,
+            uploader: a.uploadedBy ? { name: a.uploadedBy.name ?? null } : null,
+          }))
+        )
+      }
+      setLoadingCollab(false)
+    }).catch(() => {
+      if (!cancelled) setLoadingCollab(false)
+    })
+
+    return () => { cancelled = true }
+  }, [open, card.id])
 
   async function handleSave() {
     setSaving(true)
@@ -214,6 +310,37 @@ export function CardDetailModal({ card, members, allTags, open, onClose }: Props
               </Button>
             </div>
           </div>
+
+          <Separator />
+
+          {/* Collaboration sections */}
+          {loadingCollab ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : (
+            <div className="space-y-6">
+              <ChecklistSection
+                cardId={card.id}
+                initialItems={checklistItems}
+              />
+
+              <Separator />
+
+              <AttachmentSection
+                cardId={card.id}
+                projectId={card.projectId}
+                initialAttachments={attachments}
+              />
+
+              <Separator />
+
+              <CommentList
+                cardId={card.id}
+                projectId={card.projectId}
+                currentUserId={currentUserId}
+                initialComments={comments}
+              />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

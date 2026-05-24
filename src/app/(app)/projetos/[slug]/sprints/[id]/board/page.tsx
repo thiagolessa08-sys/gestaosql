@@ -3,6 +3,8 @@ import { auth } from "@/server/auth/config"
 import { findProjectBySlug } from "@/server/repositories/projects"
 import { findSprintById } from "@/server/repositories/sprints"
 import { findCardsBySprintId } from "@/server/repositories/cards"
+import { findMembersByProjectId } from "@/server/repositories/members"
+import { findTagsByProjectId } from "@/server/repositories/tags"
 import { KanbanBoard } from "@/components/board/KanbanBoard"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -30,7 +32,11 @@ export default async function BoardPage({ params }: Props) {
   const sprint = await findSprintById(id)
   if (!sprint || sprint.projectId !== project.id) notFound()
 
-  const cards = await findCardsBySprintId(id)
+  const [cards, members, allTags] = await Promise.all([
+    findCardsBySprintId(id),
+    findMembersByProjectId(project.id),
+    findTagsByProjectId(project.id),
+  ])
 
   return (
     <div>
@@ -56,7 +62,12 @@ export default async function BoardPage({ params }: Props) {
         </div>
       </div>
 
-      <KanbanBoard initialCards={cards} />
+      <KanbanBoard
+        initialCards={cards}
+        members={members}
+        allTags={allTags}
+        currentUserId={session.user.id}
+      />
     </div>
   )
 }

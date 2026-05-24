@@ -5,8 +5,11 @@ import { revalidatePath } from "next/cache"
 import { createCardSchema, updateCardSchema, moveCardSchema } from "@/lib/schemas/cards"
 import { createCard, updateCard, archiveCard, moveCard, reorderCard } from "@/server/services/cards"
 import { findCardById, addCardToSprint } from "@/server/repositories/cards"
+import { findCommentsByCardId } from "@/server/repositories/comments"
+import { findChecklistByCardId } from "@/server/repositories/checklists"
+import { findAttachmentsByCardId } from "@/server/repositories/attachments"
 import { createTag, deleteTag } from "@/server/repositories/tags"
-import { requirePermission } from "@/server/permissions"
+import { requirePermission, isMember } from "@/server/permissions"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
 
@@ -210,4 +213,60 @@ export async function deleteTagAction(tagId: string, projectId: string): Promise
   await deleteTag(tagId)
   revalidatePath(`/projetos`)
   return { success: true }
+}
+
+// ---------------------------------------------------------------------------
+// Collaboration data fetchers (called from CardDetailModal via useEffect)
+// ---------------------------------------------------------------------------
+
+type CommentData = Awaited<ReturnType<typeof findCommentsByCardId>>[number]
+type ChecklistItemData = Awaited<ReturnType<typeof findChecklistByCardId>>[number]
+type AttachmentData = Awaited<ReturnType<typeof findAttachmentsByCardId>>[number]
+
+export async function getCardCommentsAction(
+  cardId: string
+): Promise<ActionResult<CommentData[]>> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const card = await findCardById(cardId)
+  if (!card) return { success: false, error: "Card não encontrado." }
+
+  const canAccess = await isMember(session.user.id, card.projectId)
+  if (!canAccess) return { success: false, error: "Sem permissão." }
+
+  const comments = await findCommentsByCardId(cardId)
+  return { success: true, data: comments }
+}
+
+export async function getCardChecklistAction(
+  cardId: string
+): Promise<ActionResult<ChecklistItemData[]>> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const card = await findCardById(cardId)
+  if (!card) return { success: false, error: "Card não encontrado." }
+
+  const canAccess = await isMember(session.user.id, card.projectId)
+  if (!canAccess) return { success: false, error: "Sem permissão." }
+
+  const items = await findChecklistByCardId(cardId)
+  return { success: true, data: items }
+}
+
+export async function getCardAttachmentsAction(
+  cardId: string
+): Promise<ActionResult<AttachmentData[]>> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const card = await findCardById(cardId)
+  if (!card) return { success: false, error: "Card não encontrado." }
+
+  const canAccess = await isMember(session.user.id, card.projectId)
+  if (!canAccess) return { success: false, error: "Sem permissão." }
+
+  const attachments = await findAttachmentsByCardId(cardId)
+  return { success: true, data: attachments }
 }

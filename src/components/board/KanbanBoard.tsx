@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
 import { KanbanColumn } from "./KanbanColumn"
+import { CardDetailModal } from "@/components/cards/CardDetailModal"
 import { moveCardAction, reorderCardAction } from "@/server/actions/cards"
 
 type CardStatus = "BACKLOG" | "DOING" | "VALIDATION" | "DONE"
@@ -20,12 +21,28 @@ type CardStatus = "BACKLOG" | "DOING" | "VALIDATION" | "DONE"
 interface Card {
   id: string
   title: string
+  description: string | null
   status: CardStatus
-  position: number
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   storyPoints: number | null
+  dueDate: Date | null
+  assigneeId: string | null
+  position: number
+  projectId: string
+  tags: { tag: { id: string; name: string; color: string } }[]
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+}
+
+interface Member {
+  id: string
+  user: { id: string; name: string }
+}
+
+interface Tag {
+  id: string
+  name: string
+  color: string
 }
 
 const COLUMNS: { id: CardStatus; label: string }[] = [
@@ -37,16 +54,21 @@ const COLUMNS: { id: CardStatus; label: string }[] = [
 
 interface Props {
   initialCards: Card[]
-  onCardClick?: (cardId: string) => void
+  members: Member[]
+  allTags: Tag[]
+  currentUserId: string
 }
 
-export function KanbanBoard({ initialCards, onCardClick }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
+
+  const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
 
   function getCardsByStatus(status: CardStatus) {
     return cards.filter((c) => c.status === status).sort((a, b) => a.position - b.position)
@@ -115,31 +137,55 @@ export function KanbanBoard({ initialCards, onCardClick }: Props) {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            id={col.id}
-            title={col.label}
-            cards={getCardsByStatus(col.id)}
-            onCardClick={onCardClick}
-          />
-        ))}
-      </div>
+    <>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map((col) => (
+            <KanbanColumn
+              key={col.id}
+              id={col.id}
+              title={col.label}
+              cards={getCardsByStatus(col.id)}
+              onCardClick={(cardId) => setSelectedCardId(cardId)}
+            />
+          ))}
+        </div>
 
-      <DragOverlay>
-        {activeCard && (
-          <div className="bg-card border rounded-md p-3 shadow-lg rotate-2 opacity-90">
-            <p className="text-sm font-medium">{activeCard.title}</p>
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay>
+          {activeCard && (
+            <div className="bg-card border rounded-md p-3 shadow-lg rotate-2 opacity-90">
+              <p className="text-sm font-medium">{activeCard.title}</p>
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+
+      {selectedCard && (
+        <CardDetailModal
+          card={{
+            id: selectedCard.id,
+            projectId: selectedCard.projectId,
+            title: selectedCard.title,
+            description: selectedCard.description,
+            status: selectedCard.status,
+            priority: selectedCard.priority,
+            storyPoints: selectedCard.storyPoints,
+            dueDate: selectedCard.dueDate,
+            assigneeId: selectedCard.assigneeId,
+            tags: selectedCard.tags,
+          }}
+          members={members}
+          allTags={allTags}
+          open={!!selectedCardId}
+          onClose={() => setSelectedCardId(null)}
+          currentUserId={currentUserId}
+        />
+      )}
+    </>
   )
 }
