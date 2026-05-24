@@ -1,6 +1,5 @@
-import { auth } from "@/server/auth/config"
+import { auth } from "@/server/auth/edge"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
 const PUBLIC_PATHS = [
   "/login",
