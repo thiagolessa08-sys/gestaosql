@@ -1,7 +1,18 @@
+import "dotenv/config"
+import { Pool } from "pg"
+import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
 import { hash } from "bcryptjs"
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) throw new Error("DATABASE_URL não definida.")
+
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false },
+})
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   const email = process.env.ADMIN_BOOTSTRAP_EMAIL
@@ -9,7 +20,7 @@ async function main() {
 
   if (!email || !password) {
     throw new Error(
-      "ADMIN_BOOTSTRAP_EMAIL e ADMIN_BOOTSTRAP_PASSWORD são obrigatórios no .env.local"
+      "ADMIN_BOOTSTRAP_EMAIL e ADMIN_BOOTSTRAP_PASSWORD são obrigatórios no .env"
     )
   }
 
@@ -38,4 +49,7 @@ main()
     console.error(e)
     process.exit(1)
   })
-  .finally(() => prisma.$disconnect())
+  .finally(async () => {
+    await prisma.$disconnect()
+    await pool.end()
+  })
