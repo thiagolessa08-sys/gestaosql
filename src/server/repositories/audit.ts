@@ -31,3 +31,28 @@ export async function findAuditLogsByProject(projectId: string, limit = 50) {
     take: limit,
   })
 }
+
+export async function findAuditLogsByProjectPaginated(
+  projectId: string,
+  opts: {
+    entityType?: string
+    actorId?: string
+    limit?: number
+    offset?: number
+  } = {}
+) {
+  const { entityType, actorId, limit = 50, offset = 0 } = opts
+  return db.auditLog.findMany({
+    where: {
+      projectId,
+      ...(entityType ? { entityType } : {}),
+      ...(actorId ? { actorId } : {}),
+    },
+    include: {
+      actor: { select: { id: true, name: true, avatarUrl: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    skip: offset,
+  })
+}

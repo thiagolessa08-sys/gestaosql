@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/server/auth/config"
 import { findProjectBySlug } from "@/server/repositories/projects"
+import { getMemberRole } from "@/server/permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -18,6 +19,10 @@ export default async function ProjectPage({ params }: Props) {
   const project = await findProjectBySlug(slug)
   if (!project) notFound()
 
+  const role = await getMemberRole(session.user.id, project.id)
+  const canViewAudit =
+    session.user.isSystemAdmin || role === "ADMIN" || role === "SCRUM_MASTER"
+
   return (
     <div>
       <div className="flex items-start justify-between mb-2">
@@ -31,6 +36,11 @@ export default async function ProjectPage({ params }: Props) {
           )}
         </div>
         <div className="flex gap-2">
+          {canViewAudit && (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/projetos/${slug}/atividade`}>Atividade</Link>
+            </Button>
+          )}
           <Button asChild variant="outline" size="sm">
             <Link href={`/projetos/${slug}/pessoas`}>Membros</Link>
           </Button>
