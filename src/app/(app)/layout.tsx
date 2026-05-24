@@ -28,6 +28,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           >
             Projetos
           </Link>
+          <Link
+            href="/configuracoes/perfil"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
+          >
+            Configurações
+          </Link>
         </nav>
         <Separator />
         <div className="p-4">
