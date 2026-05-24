@@ -2,6 +2,9 @@
 builder = "nixpacks"
 buildCommand = "npm run build && npx prisma migrate deploy"
 
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs_20", "npm-9_x", "openssl"]
+
 [deploy]
 startCommand = "npm start"
 healthcheckPath = "/api/auth/session"
