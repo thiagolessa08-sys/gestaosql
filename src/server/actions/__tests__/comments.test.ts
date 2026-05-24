@@ -94,7 +94,7 @@ describe("createCommentAction", () => {
     mockAuth.mockResolvedValue(SESSION as any)
     mockFindCardById.mockResolvedValue(CARD as any)
     mockCreateComment.mockResolvedValue({ id: "comment-1" } as any)
-    const result = await createCommentAction("card-1", makeFormData({ content: "Nice work!" }))
+    const result = await createCommentAction("card-1", makeFormData({ body: "Nice work!" }))
     expect(result.success).toBe(true)
     if (result.success) expect(result.data).toEqual({ id: "comment-1" })
     expect(mockCreateComment).toHaveBeenCalledWith({
@@ -138,7 +138,7 @@ describe("updateCommentAction", () => {
     mockFindCommentById.mockResolvedValue(COMMENT as any)
     mockFindCardById.mockResolvedValue(CARD as any)
     mockUpdateComment.mockResolvedValue(COMMENT as any)
-    const result = await updateCommentAction("comment-1", makeFormData({ content: "updated text" }))
+    const result = await updateCommentAction("comment-1", makeFormData({ body: "updated text" }))
     expect(result.success).toBe(true)
     expect(mockUpdateComment).toHaveBeenCalledWith({
       commentId: "comment-1",

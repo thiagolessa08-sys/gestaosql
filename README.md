@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SQLTech Gestão
 
-## Getting Started
+Sprint management system built with Next.js 15, Prisma, Auth.js v5, and shadcn/ui.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- PostgreSQL 16+ (or Docker)
+- A [Resend](https://resend.com) account for email
+
+## Getting started
+
+### 1. Clone and install
+
+```bash
+git clone <repo-url>
+cd sqltech-gestao
+npm install
+```
+
+### 2. Configure environment variables
+
+Copy `.env.example` to `.env.local` and fill in:
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Random secret (run: `openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | App URL (e.g. `http://localhost:3000`) |
+| `RESEND_API_KEY` | Resend API key |
+| `RESEND_FROM` | Sender address (e.g. `SQLTech Gestão <noreply@yourdomain.com>`) |
+| `ADMIN_BOOTSTRAP_EMAIL` | Email for the initial admin user |
+| `ADMIN_BOOTSTRAP_PASSWORD` | Password for the initial admin user |
+| `ATTACHMENT_STORAGE_PATH` | Local directory for file uploads |
+
+### 3. Run the database
+
+```bash
+# With Docker:
+docker compose up -d
+
+# Or use an existing PostgreSQL instance
+```
+
+### 4. Run migrations and seed
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+### 5. Start development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app is available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Log in with the `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD` you configured.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm start` | Start production server |
+| `npm run test` | Run unit tests in watch mode (Vitest) |
+| `npm run test:run` | Run unit tests once (Vitest) |
+| `npm run test:e2e` | Run E2E tests (Playwright) |
+| `npm run db:seed` | Seed the database |
 
-To learn more about Next.js, take a look at the following resources:
+## Tech stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework:** Next.js 15 (App Router)
+- **Database:** PostgreSQL + Prisma ORM
+- **Auth:** Auth.js v5 (Credentials provider)
+- **UI:** shadcn/ui + Tailwind CSS v4
+- **Email:** Resend + React Email
+- **Drag & drop:** @dnd-kit
+- **Tests:** Vitest (unit) + Playwright (E2E)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment (Railway)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create a new Railway project
+2. Add a PostgreSQL service
+3. Set all environment variables from the table above
+4. Deploy — Railway auto-detects `railway.toml` and runs migrations on build
