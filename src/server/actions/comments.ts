@@ -26,7 +26,7 @@ export async function createCommentAction(
     return { success: false, error: "Sem permissão para comentar." }
   }
 
-  const raw = { body: formData.get("content") ?? formData.get("body") }
+  const raw = { body: formData.get("body") }
   const parsed = createCommentSchema.safeParse(raw)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
@@ -58,12 +58,13 @@ export async function updateCommentAction(
   if (!card) return { success: false, error: "Card não encontrado." }
 
   try {
+    // No "comment:edit" permission exists — "comment:create" covers both create and update
     await requirePermission(session.user.id, card.projectId, "comment:create")
   } catch {
     return { success: false, error: "Sem permissão para editar comentário." }
   }
 
-  const raw = { body: formData.get("content") ?? formData.get("body") }
+  const raw = { body: formData.get("body") }
   const parsed = updateCommentSchema.safeParse(raw)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
@@ -87,7 +88,7 @@ export async function deleteCommentAction(commentId: string): Promise<ActionResu
     await deleteComment({ commentId, actorId: session.user.id, projectId: card.projectId })
   } catch (err) {
     const message = err instanceof Error ? err.message : undefined
-    return { success: false, error: message ?? "Sem permissão." }
+    return { success: false, error: message ?? "Erro ao excluir comentário." }
   }
 
   revalidatePath("/projetos")
