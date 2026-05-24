@@ -30,6 +30,28 @@ export async function findUserById(id: string) {
   })
 }
 
+export async function findUserByIdWithPassword(id: string) {
+  return db.user.findUnique({
+    where: { id, deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatarUrl: true,
+      passwordHash: true,
+      isSystemAdmin: true,
+      mustChangePassword: true,
+    },
+  })
+}
+
+export async function updateUser(
+  id: string,
+  data: { name?: string; avatarUrl?: string | null }
+) {
+  return db.user.update({ where: { id }, data })
+}
+
 export async function createUser(data: {
   name: string
   email: string
