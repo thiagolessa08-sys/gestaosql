@@ -18,7 +18,6 @@ interface Attachment {
 
 interface Props {
   cardId: string
-  projectId: string
   initialAttachments: Attachment[]
 }
 

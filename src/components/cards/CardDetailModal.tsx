@@ -108,6 +108,7 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
   const [attachments, setAttachments] = useState<AttachmentItem[]>([])
   const [loadingCollab, setLoadingCollab] = useState(false)
+  const [collabError, setCollabError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -162,7 +163,10 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
       }
       setLoadingCollab(false)
     }).catch(() => {
-      if (!cancelled) setLoadingCollab(false)
+      if (!cancelled) {
+        setLoadingCollab(false)
+        setCollabError("Não foi possível carregar os dados de colaboração.")
+      }
     })
 
     return () => { cancelled = true }
@@ -314,6 +318,10 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
           <Separator />
 
           {/* Collaboration sections */}
+          {collabError && (
+            <p className="text-sm text-destructive">{collabError}</p>
+          )}
+
           {loadingCollab ? (
             <p className="text-sm text-muted-foreground">Carregando...</p>
           ) : (
@@ -327,7 +335,6 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
 
               <AttachmentSection
                 cardId={card.id}
-                projectId={card.projectId}
                 initialAttachments={attachments}
               />
 
@@ -335,7 +342,6 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
 
               <CommentList
                 cardId={card.id}
-                projectId={card.projectId}
                 currentUserId={currentUserId}
                 initialComments={comments}
               />

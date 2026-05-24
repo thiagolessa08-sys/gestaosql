@@ -27,7 +27,6 @@ interface Comment {
 
 interface Props {
   cardId: string
-  projectId: string
   currentUserId: string
   initialComments: Comment[]
 }
