@@ -4,10 +4,14 @@ import { auth, signOut } from "@/server/auth/config"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { NotificationBell } from "@/components/shared/NotificationBell"
+import { countUnreadNotifications } from "@/server/repositories/notifications"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
+
+  const unreadCount = await countUnreadNotifications(session.user.id)
 
   return (
     <div className="flex h-screen bg-background">
@@ -27,7 +31,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </nav>
         <Separator />
         <div className="p-4">
-          <p className="text-sm font-medium truncate">{session.user.name}</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-medium truncate">{session.user.name}</p>
+            <NotificationBell initialCount={unreadCount} />
+          </div>
           <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
           <form
             action={async () => {
