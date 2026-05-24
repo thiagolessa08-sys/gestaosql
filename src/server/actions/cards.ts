@@ -71,7 +71,7 @@ export async function updateCardAction(
   const raw = {
     title: formData.get("title") || undefined,
     description: formData.get("description"),
-    assigneeId: formData.get("assigneeId"),
+    assigneeId: formData.get("assigneeId") || null, // empty string → null to allow clearing assignee
     priority: formData.get("priority") || undefined,
     storyPoints: formData.get("storyPoints") || undefined,
     dueDate: formData.get("dueDate") || undefined,
