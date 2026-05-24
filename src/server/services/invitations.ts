@@ -9,6 +9,7 @@ import { findUserByEmail, createUser } from "@/server/repositories/users"
 import { createMember, findMemberByUserAndProject } from "@/server/repositories/members"
 import { sendEmail } from "@/server/email/send"
 import { InviteEmail } from "@/server/email/templates/invite"
+import { notifyAddedToProject } from "@/server/services/notifications"
 import React from "react"
 
 interface CreateInvitationInput {
@@ -85,6 +86,18 @@ export async function acceptInvitation(input: AcceptInvitationInput) {
   }
 
   await markInvitationAccepted(input.token)
+
+  try {
+    await notifyAddedToProject({
+      userId,
+      projectId: invitation.projectId,
+      projectName: invitation.project.name,
+      projectSlug: invitation.project.slug,
+      role: "MEMBER",
+    })
+  } catch {
+    // Notification failure is non-fatal
+  }
 
   return { userId }
 }

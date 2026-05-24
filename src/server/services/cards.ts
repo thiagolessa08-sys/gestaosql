@@ -8,8 +8,10 @@ import {
   updateCardPosition,
   countCardsByStatus,
 } from "@/server/repositories/cards"
+import { findProjectById } from "@/server/repositories/projects"
 import { setCardTags } from "@/server/repositories/tags"
 import { writeAudit } from "@/server/services/audit"
+import { notifyCardAssigned } from "@/server/services/notifications"
 import { db } from "@/server/db"
 
 interface CreateCardInput {
@@ -94,6 +96,27 @@ export async function updateCard({ cardId, actorId, data }: UpdateCardInput) {
     action: "UPDATE",
     changes: { after: data },
   })
+
+  // Notify new assignee when assignee changes to a non-null value
+  if (data.assigneeId != null && data.assigneeId !== card.assigneeId) {
+    try {
+      const project = await findProjectById(card.projectId)
+      if (project) {
+        await notifyCardAssigned({
+          assigneeId: data.assigneeId,
+          actorId,
+          cardId,
+          cardTitle: card.title,
+          projectId: card.projectId,
+          projectName: project.name,
+          projectSlug: project.slug,
+          sprintId: card.sprintId ?? null,
+        })
+      }
+    } catch {
+      // Notification failure is non-fatal
+    }
+  }
 
   return updated
 }

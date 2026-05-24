@@ -5,8 +5,11 @@ import {
   softDeleteComment,
 } from "@/server/repositories/comments"
 import { findCardById } from "@/server/repositories/cards"
+import { findProjectById } from "@/server/repositories/projects"
+import { findUserById } from "@/server/repositories/users"
 import { findMemberByUserAndProject } from "@/server/repositories/members"
 import { writeAudit } from "@/server/services/audit"
+import { notifyComment } from "@/server/services/notifications"
 
 interface CreateCommentInput {
   cardId: string
@@ -31,6 +34,31 @@ export async function createComment(input: CreateCommentInput) {
     entityId: comment.id,
     action: "COMMENT",
   })
+
+  // Notify the card's assignee if they are different from the comment author
+  if (card.assigneeId && card.assigneeId !== input.authorId) {
+    try {
+      const [author, project] = await Promise.all([
+        findUserById(input.authorId),
+        findProjectById(card.projectId),
+      ])
+      if (author && project) {
+        await notifyComment({
+          authorId: input.authorId,
+          authorName: author.name,
+          recipientId: card.assigneeId,
+          cardId: input.cardId,
+          cardTitle: card.title,
+          commentBody: input.body,
+          projectId: card.projectId,
+          projectSlug: project.slug,
+          sprintId: card.sprintId ?? null,
+        })
+      }
+    } catch {
+      // Notification failure is non-fatal
+    }
+  }
 
   return comment
 }

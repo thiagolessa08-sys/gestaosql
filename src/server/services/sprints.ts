@@ -6,6 +6,8 @@ import {
   startSprint as startSprintRecord,
   closeSprint as closeSprintRecord,
 } from "@/server/repositories/sprints"
+import { findProjectById } from "@/server/repositories/projects"
+import { notifySprintStarted, notifySprintEnded } from "@/server/services/notifications"
 import { db } from "@/server/db"
 
 interface CreateSprintInput {
@@ -35,7 +37,24 @@ export async function startSprint(sprintId: string) {
   const active = await findActiveSprintByProjectId(sprint.projectId)
   if (active) throw new Error("Já existe uma sprint ativa neste projeto")
 
-  return startSprintRecord(sprintId)
+  const result = await startSprintRecord(sprintId)
+
+  try {
+    const project = await findProjectById(sprint.projectId)
+    if (project) {
+      await notifySprintStarted({
+        projectId: sprint.projectId,
+        projectName: project.name,
+        projectSlug: project.slug,
+        sprintId: sprint.id,
+        sprintName: sprint.name,
+      })
+    }
+  } catch {
+    // Notification failure is non-fatal
+  }
+
+  return result
 }
 
 interface CloseSprintInput {
@@ -59,5 +78,22 @@ export async function closeSprint({ sprintId, destinationSprintId }: CloseSprint
     },
   })
 
-  return closeSprintRecord(sprintId)
+  const result = await closeSprintRecord(sprintId)
+
+  try {
+    const project = await findProjectById(sprint.projectId)
+    if (project) {
+      await notifySprintEnded({
+        projectId: sprint.projectId,
+        projectName: project.name,
+        projectSlug: project.slug,
+        sprintId: sprint.id,
+        sprintName: sprint.name,
+      })
+    }
+  } catch {
+    // Notification failure is non-fatal
+  }
+
+  return result
 }
