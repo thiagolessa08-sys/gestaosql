@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -45,6 +46,7 @@ function formatDate(date: Date) {
 
 export function SprintList({
   sprints,
+  projectSlug,
   canManage,
   plannedSprints,
   statusLabels,
@@ -113,32 +115,36 @@ export function SprintList({
                 {formatDate(sprint.plannedStartDate)} → {formatDate(sprint.plannedEndDate)}
               </p>
 
-              {canManage && (
-                <div className="flex gap-2 mt-3">
-                  {sprint.status === "PLANNED" && !hasActiveSprint && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleStart(sprint.id)}
-                      disabled={loadingId === sprint.id}
-                    >
-                      {loadingId === sprint.id ? "Iniciando..." : "Iniciar sprint"}
-                    </Button>
-                  )}
-                  {sprint.status === "ACTIVE" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setCloseDialogSprint(sprint)
-                        setDestinationSprintId("none")
-                      }}
-                      disabled={loadingId === sprint.id}
-                    >
-                      Encerrar sprint
-                    </Button>
-                  )}
-                </div>
-              )}
+              <div className="flex gap-2 mt-3">
+                <Button asChild size="sm">
+                  <Link href={`/projetos/${projectSlug}/sprints/${sprint.id}/board`}>
+                    Abrir board
+                  </Link>
+                </Button>
+                {canManage && sprint.status === "PLANNED" && !hasActiveSprint && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStart(sprint.id)}
+                    disabled={loadingId === sprint.id}
+                  >
+                    {loadingId === sprint.id ? "Iniciando..." : "Iniciar sprint"}
+                  </Button>
+                )}
+                {canManage && sprint.status === "ACTIVE" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setCloseDialogSprint(sprint)
+                      setDestinationSprintId("none")
+                    }}
+                    disabled={loadingId === sprint.id}
+                  >
+                    Encerrar sprint
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
