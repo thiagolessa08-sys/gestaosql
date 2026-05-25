@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   DndContext,
   DragEndEvent,
@@ -64,6 +64,11 @@ interface Props {
 export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
+
+  // Sync when server re-fetches data (e.g. after router.refresh())
+  useEffect(() => {
+    setCards(initialCards)
+  }, [initialCards])
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
 
   const sensors = useSensors(

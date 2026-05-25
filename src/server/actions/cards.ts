@@ -50,7 +50,7 @@ export async function createCardAction(
     sprintId: (formData.get("sprintId") as string | null) || undefined,
   })
 
-  revalidatePath(`/projetos`)
+  revalidatePath("/", "layout")
   return { success: true, data: { id: card.id } }
 }
 
