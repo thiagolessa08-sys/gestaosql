@@ -67,6 +67,8 @@ export default async function BoardPage({ params }: Props) {
         members={members}
         allTags={allTags}
         currentUserId={session.user.id}
+        projectId={project.id}
+        sprintId={id}
       />
     </div>
   )

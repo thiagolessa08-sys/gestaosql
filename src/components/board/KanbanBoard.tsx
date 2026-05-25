@@ -57,9 +57,11 @@ interface Props {
   members: Member[]
   allTags: Tag[]
   currentUserId: string
+  projectId: string
+  sprintId: string
 }
 
-export function KanbanBoard({ initialCards, members, allTags, currentUserId }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
@@ -152,6 +154,8 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId }: P
               title={col.label}
               cards={getCardsByStatus(col.id)}
               onCardClick={(cardId) => setSelectedCardId(cardId)}
+              projectId={projectId}
+              sprintId={sprintId}
             />
           ))}
         </div>
