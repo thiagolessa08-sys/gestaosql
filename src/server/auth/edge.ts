@@ -12,11 +12,14 @@ const edgeAuthConfig: NextAuthConfig = {
   trustHost: true, // necessário para deployments atrás de proxy (Railway, Vercel)
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id!
         token.isSystemAdmin = (user as { isSystemAdmin: boolean }).isSystemAdmin
         token.mustChangePassword = (user as { mustChangePassword: boolean }).mustChangePassword
+      }
+      if (trigger === "update" && session?.mustChangePassword !== undefined) {
+        token.mustChangePassword = session.mustChangePassword as boolean
       }
       return token
     },

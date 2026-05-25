@@ -45,11 +45,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id!
         token.isSystemAdmin = (user as { isSystemAdmin: boolean }).isSystemAdmin
         token.mustChangePassword = (user as { mustChangePassword: boolean }).mustChangePassword
+      }
+      // Permite atualizar mustChangePassword no JWT via useSession().update()
+      if (trigger === "update" && session?.mustChangePassword !== undefined) {
+        token.mustChangePassword = session.mustChangePassword as boolean
       }
       return token
     },

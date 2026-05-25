@@ -2,13 +2,16 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { changePassword } from "@/server/actions/auth"
 
 export default function TrocarSenhaPage() {
   const router = useRouter()
+  const { update } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,18 +20,26 @@ export default function TrocarSenhaPage() {
     setError(null)
     const formData = new FormData(e.currentTarget)
     const newPassword = formData.get("newPassword")
-    if (typeof newPassword !== "string" || !newPassword) return
     const confirm = formData.get("confirm")
+
+    if (typeof newPassword !== "string" || !newPassword) return
     if (typeof confirm !== "string" || !confirm) return
     if (newPassword !== confirm) {
       setError("As senhas não coincidem.")
       return
     }
+
     setLoading(true)
-    // Server action will be wired in Task 2.6
-    await new Promise((r) => setTimeout(r, 500))
+    const result = await changePassword(formData)
     setLoading(false)
-    // After successful change, redirect to /projetos
+
+    if (!result.success) {
+      setError(result.error)
+      return
+    }
+
+    // Atualiza o JWT para refletir mustChangePassword: false
+    await update({ mustChangePassword: false })
     router.push("/projetos")
   }
 
