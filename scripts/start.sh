@@ -23,5 +23,9 @@ echo "=== Executando migrações do banco de dados ==="
 npx prisma migrate deploy
 
 echo ""
+echo "=== Executando seed (cria admin se não existir) ==="
+npx tsx prisma/seed.ts || echo "Seed ignorado ou falhou (não fatal)"
+
+echo ""
 echo "=== Iniciando aplicação ==="
 exec npm start
