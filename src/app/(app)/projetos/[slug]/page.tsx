@@ -67,8 +67,13 @@ export default async function ProjectPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="text-muted-foreground text-sm">
-        <p>Board kanban e sprints serão implementados nas próximas etapas.</p>
+      <div className="flex gap-3">
+        <Button asChild>
+          <Link href={`/projetos/${slug}/sprints`}>Ver Sprints</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href={`/projetos/${slug}/backlog`}>Backlog</Link>
+        </Button>
       </div>
     </div>
   )
