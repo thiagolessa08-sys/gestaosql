@@ -9,6 +9,8 @@ import type { NextAuthConfig } from "next-auth"
 
 const edgeAuthConfig: NextAuthConfig = {
   providers: [], // nenhum provider — só valida o JWT existente
+  trustHost: true, // necessário para deployments atrás de proxy (Railway, Vercel)
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   callbacks: {
     jwt({ token, user }) {
       if (user) {
