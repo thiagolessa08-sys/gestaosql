@@ -28,6 +28,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
     <div className="relative bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-all duration-200 h-full flex flex-col">
       {/* Invisible full-card link */}
       <Link href={`/projetos/${project.slug}`} className="absolute inset-0 z-0" aria-label={project.name} />
+      {/* Color accent strip */}
+      <div className="relative z-10 h-1.5 w-full shrink-0" style={{ background: color.accent }} />
       <div className="relative z-10 p-5 flex flex-col flex-1 gap-4">
 
         {/* Header: icon + name + menu */}
