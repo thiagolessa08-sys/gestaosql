@@ -9,7 +9,7 @@ export default async function ProjetosPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const projects = await getProjectsForUser(session.user.id)
+  const projects = await getProjectsForUser(session.user.id, session.user.isSystemAdmin)
 
   return (
     <div>

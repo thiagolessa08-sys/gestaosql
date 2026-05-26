@@ -1,6 +1,7 @@
 import {
   findProjectBySlug,
   findProjectsByMemberId,
+  findAllProjects,
   createProject as createProjectRecord,
   updateProject as updateProjectRecord,
   archiveProject as archiveProjectRecord,
@@ -58,6 +59,8 @@ export async function archiveProject(id: string) {
   return archiveProjectRecord(id)
 }
 
-export async function getProjectsForUser(userId: string) {
+export async function getProjectsForUser(userId: string, isSystemAdmin = false) {
+  // System admins see all projects; regular users see only their projects
+  if (isSystemAdmin) return findAllProjects()
   return findProjectsByMemberId(userId)
 }

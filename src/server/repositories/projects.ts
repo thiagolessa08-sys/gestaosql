@@ -29,6 +29,16 @@ export async function findProjectsByMemberId(userId: string) {
   })
 }
 
+export async function findAllProjects() {
+  return db.project.findMany({
+    where: { archivedAt: null },
+    include: {
+      _count: { select: { members: true, sprints: true, cards: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
+}
+
 export async function createProject(data: {
   name: string
   slug: string
