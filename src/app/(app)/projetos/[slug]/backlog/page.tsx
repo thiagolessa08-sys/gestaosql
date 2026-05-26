@@ -22,14 +22,18 @@ export default async function BacklogPage({ params }: Props) {
   const project = await findProjectBySlug(slug)
   if (!project) notFound()
 
+  const currentRole = await getMemberRole(session.user.id, project.id)
+  const canCreate = !!currentRole
+
+  // Members only see cards assigned to them; admins/scrum masters see all
+  const isMemberOnly =
+    !session.user.isSystemAdmin && currentRole === "MEMBER"
+
   const [cards, members, sprints] = await Promise.all([
-    findBacklogCards(project.id),
+    findBacklogCards(project.id, isMemberOnly ? session.user.id : undefined),
     findMembersByProjectId(project.id),
     findSprintsByProjectId(project.id),
   ])
-
-  const currentRole = await getMemberRole(session.user.id, project.id)
-  const canCreate = !!currentRole
 
   const plannedSprints = sprints.filter((s) => s.status === "PLANNED" || s.status === "ACTIVE")
 

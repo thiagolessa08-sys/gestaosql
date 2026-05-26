@@ -12,9 +12,13 @@ export async function findCardById(id: string) {
   })
 }
 
-export async function findCardsBySprintId(sprintId: string) {
+export async function findCardsBySprintId(sprintId: string, assigneeId?: string) {
   return db.card.findMany({
-    where: { sprintId, archivedAt: null },
+    where: {
+      sprintId,
+      archivedAt: null,
+      ...(assigneeId ? { assigneeId } : {}),
+    },
     include: {
       assignee: { select: { id: true, name: true, avatarUrl: true } },
       tags: { include: { tag: true } },
@@ -25,9 +29,14 @@ export async function findCardsBySprintId(sprintId: string) {
   })
 }
 
-export async function findBacklogCards(projectId: string) {
+export async function findBacklogCards(projectId: string, assigneeId?: string) {
   return db.card.findMany({
-    where: { projectId, sprintId: null, archivedAt: null },
+    where: {
+      projectId,
+      sprintId: null,
+      archivedAt: null,
+      ...(assigneeId ? { assigneeId } : {}),
+    },
     include: {
       assignee: { select: { id: true, name: true, avatarUrl: true } },
       tags: { include: { tag: true } },
