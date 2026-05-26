@@ -2,9 +2,10 @@ import { notFound, redirect } from "next/navigation"
 import { auth } from "@/server/auth/config"
 import { findProjectBySlug } from "@/server/repositories/projects"
 import { findMembersByProjectId } from "@/server/repositories/members"
+import { findAllUsers } from "@/server/repositories/users"
 import { getMemberRole } from "@/server/permissions"
 import { MemberList } from "@/components/projects/MemberList"
-import { InviteForm } from "@/components/projects/InviteForm"
+import { AddMemberForm } from "@/components/projects/AddMemberForm"
 import { Separator } from "@/components/ui/separator"
 
 interface Props {
@@ -19,12 +20,19 @@ export default async function PessoasPage({ params }: Props) {
   const project = await findProjectBySlug(slug)
   if (!project) notFound()
 
-  const members = await findMembersByProjectId(project.id)
+  const [members, allUsers] = await Promise.all([
+    findMembersByProjectId(project.id),
+    findAllUsers(),
+  ])
   const currentRole = await getMemberRole(session.user.id, project.id)
 
   const canManage =
     session.user.isSystemAdmin ||
     currentRole === "ADMIN"
+
+  // Users not yet members of this project
+  const memberUserIds = new Set(members.map((m) => m.user.id))
+  const availableUsers = allUsers.filter((u) => !memberUserIds.has(u.id))
 
   return (
     <div>
@@ -48,7 +56,10 @@ export default async function PessoasPage({ params }: Props) {
 
         {canManage && (
           <div>
-            <InviteForm projectId={project.id} />
+            <AddMemberForm
+              projectId={project.id}
+              availableUsers={availableUsers}
+            />
           </div>
         )}
       </div>
