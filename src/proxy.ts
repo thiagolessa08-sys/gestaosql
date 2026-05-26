@@ -30,6 +30,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/trocar-senha", req.url))
   }
 
+  // Logado na raiz → redireciona para projetos
+  if (isLoggedIn && pathname === "/") {
+    return NextResponse.redirect(new URL("/projetos", req.url))
+  }
+
   return NextResponse.next()
 })
 
