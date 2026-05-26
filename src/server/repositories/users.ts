@@ -89,6 +89,21 @@ export async function updateUserPassword(userId: string, newPassword: string) {
   })
 }
 
+export async function findAllUsers() {
+  return db.user.findMany({
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isSystemAdmin: true,
+      mustChangePassword: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "asc" },
+  })
+}
+
 export async function markUserDeleted(userId: string) {
   return db.user.update({
     where: { id: userId },
