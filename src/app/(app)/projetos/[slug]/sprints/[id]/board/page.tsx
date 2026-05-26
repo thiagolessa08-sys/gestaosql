@@ -5,6 +5,7 @@ import { findSprintById } from "@/server/repositories/sprints"
 import { findCardsBySprintId } from "@/server/repositories/cards"
 import { findMembersByProjectId } from "@/server/repositories/members"
 import { findTagsByProjectId } from "@/server/repositories/tags"
+import { findMainActivitiesBySprintId } from "@/server/repositories/mainActivities"
 import { KanbanBoard } from "@/components/board/KanbanBoard"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -32,10 +33,11 @@ export default async function BoardPage({ params }: Props) {
   const sprint = await findSprintById(id)
   if (!sprint || sprint.projectId !== project.id) notFound()
 
-  const [cards, members, allTags] = await Promise.all([
+  const [cards, members, allTags, activities] = await Promise.all([
     findCardsBySprintId(id),
     findMembersByProjectId(project.id),
     findTagsByProjectId(project.id),
+    findMainActivitiesBySprintId(id),
   ])
 
   return (
@@ -69,6 +71,7 @@ export default async function BoardPage({ params }: Props) {
         currentUserId={session.user.id}
         projectId={project.id}
         sprintId={id}
+        activities={activities}
       />
     </div>
   )

@@ -44,6 +44,7 @@ interface Card {
   dueDate: Date | null
   assigneeId: string | null
   tags: { tag: Tag }[]
+  mainActivityId?: string | null
 }
 
 // Types inferred from the action return types
@@ -77,6 +78,7 @@ interface Props {
   card: Card
   members: Member[]
   allTags: Tag[]
+  activities: { id: string; name: string; color: string }[]
   open: boolean
   onClose: () => void
   currentUserId: string
@@ -89,7 +91,7 @@ const STATUS_LABELS: Record<string, string> = {
   DONE: "Concluído",
 }
 
-export function CardDetailModal({ card, members, allTags, open, onClose, currentUserId }: Props) {
+export function CardDetailModal({ card, members, allTags, activities, open, onClose, currentUserId }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description ?? "")
@@ -100,6 +102,7 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
     card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : ""
   )
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(card.tags.map((ct) => ct.tag.id))
+  const [mainActivityId, setMainActivityId] = useState<string>(card.mainActivityId ?? "none")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -184,6 +187,7 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
     if (storyPoints) formData.set("storyPoints", storyPoints)
     if (dueDate) formData.set("dueDate", dueDate)
     formData.set("tagIds", JSON.stringify(selectedTagIds))
+    formData.set("mainActivityId", mainActivityId !== "none" ? mainActivityId : "")
 
     const result = await updateCardAction(card.id, formData)
     setSaving(false)
@@ -296,6 +300,32 @@ export function CardDetailModal({ card, members, allTags, open, onClose, current
               onChange={setSelectedTagIds}
             />
           </div>
+
+          {/* Atividade Principal */}
+          {activities.length > 0 && (
+            <div className="space-y-1">
+              <Label>Atividade principal</Label>
+              <Select value={mainActivityId} onValueChange={setMainActivityId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {activities.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full inline-block flex-shrink-0"
+                          style={{ backgroundColor: a.color }}
+                        />
+                        {a.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 

@@ -18,6 +18,7 @@ export async function findCardsBySprintId(sprintId: string) {
     include: {
       assignee: { select: { id: true, name: true, avatarUrl: true } },
       tags: { include: { tag: true } },
+      mainActivity: { select: { id: true, name: true, color: true } },
       _count: { select: { comments: true, checklists: true } },
     },
     orderBy: [{ status: "asc" }, { position: "asc" }],
@@ -60,6 +61,7 @@ export async function updateCard(
     priority?: Priority
     storyPoints?: number | null
     dueDate?: Date | null
+    mainActivityId?: string | null
   }
 ) {
   return db.card.update({ where: { id }, data })

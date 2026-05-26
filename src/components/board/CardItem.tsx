@@ -6,6 +6,12 @@ import { PriorityBadge } from "@/components/shared/PriorityBadge"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
+interface MainActivity {
+  id: string
+  name: string
+  color: string
+}
+
 interface Card {
   id: string
   title: string
@@ -13,6 +19,7 @@ interface Card {
   storyPoints: number | null
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+  mainActivity: MainActivity | null
 }
 
 interface Props {
@@ -49,6 +56,17 @@ export function CardItem({ card, onCardClick }: Props) {
       className="bg-card border rounded-md p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow"
       onClick={() => onCardClick?.(card.id)}
     >
+      {card.mainActivity && (
+        <div className="flex items-center gap-1 mb-1.5">
+          <span
+            className="h-2 w-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: card.mainActivity.color }}
+          />
+          <span className="text-xs text-muted-foreground truncate">
+            {card.mainActivity.name}
+          </span>
+        </div>
+      )}
       <p className="text-sm font-medium mb-2 line-clamp-2">{card.title}</p>
       <div className="flex items-center justify-between gap-1 flex-wrap">
         <PriorityBadge priority={card.priority} />

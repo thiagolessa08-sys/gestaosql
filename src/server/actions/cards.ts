@@ -79,6 +79,9 @@ export async function updateCardAction(
     storyPoints: formData.get("storyPoints") || undefined,
     dueDate: formData.get("dueDate") || undefined,
     tagIds: tagIdsRaw ? JSON.parse(tagIdsRaw) : undefined,
+    mainActivityId: formData.has("mainActivityId")
+      ? (formData.get("mainActivityId") || null)
+      : undefined,
   }
   const parsed = updateCardSchema.safeParse(raw)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }

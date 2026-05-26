@@ -18,6 +18,12 @@ import { moveCardAction, reorderCardAction } from "@/server/actions/cards"
 
 type CardStatus = "BACKLOG" | "DOING" | "VALIDATION" | "DONE"
 
+interface MainActivity {
+  id: string
+  name: string
+  color: string
+}
+
 interface Card {
   id: string
   title: string
@@ -32,6 +38,8 @@ interface Card {
   tags: { tag: { id: string; name: string; color: string } }[]
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+  mainActivityId: string | null
+  mainActivity: MainActivity | null
 }
 
 interface Member {
@@ -59,9 +67,10 @@ interface Props {
   currentUserId: string
   projectId: string
   sprintId: string
+  activities: MainActivity[]
 }
 
-export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, activities }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
 
@@ -187,9 +196,11 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
             dueDate: selectedCard.dueDate,
             assigneeId: selectedCard.assigneeId,
             tags: selectedCard.tags,
+            mainActivityId: selectedCard.mainActivityId,
           }}
           members={members}
           allTags={allTags}
+          activities={activities}
           open={!!selectedCardId}
           onClose={() => setSelectedCardId(null)}
           currentUserId={currentUserId}

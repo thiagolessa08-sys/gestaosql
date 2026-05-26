@@ -21,6 +21,7 @@ export const updateCardSchema = z.object({
   storyPoints: z.coerce.number().int().min(0).max(100).optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   tagIds: z.array(z.string().uuid()).optional(),
+  mainActivityId: z.string().uuid().optional().nullable(),
 })
 
 export const moveCardSchema = z.object({

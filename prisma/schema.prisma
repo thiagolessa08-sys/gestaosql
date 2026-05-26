@@ -175,6 +175,7 @@ model Sprint {
   cards           Card[]
   cardSnapshots   SprintCardSnapshot[]
   cardTransitions CardStatusTransition[]
+  mainActivities  MainActivity[]
 
   @@map("sprints")
 }
@@ -191,14 +192,16 @@ model Card {
   storyPoints Int?       @map("story_points")
   dueDate     DateTime?  @map("due_date") @db.Date
   position    Int        @default(0)
-  createdById String     @map("created_by_id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  archivedAt  DateTime?  @map("archived_at")
+  mainActivityId String?    @map("main_activity_id")
+  createdById    String     @map("created_by_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  archivedAt     DateTime?  @map("archived_at")
 
-  project     Project                @relation(fields: [projectId], references: [id])
-  sprint      Sprint?                @relation(fields: [sprintId], references: [id])
-  assignee    User?                  @relation("CardAssignee", fields: [assigneeId], references: [id])
+  project      Project                @relation(fields: [projectId], references: [id])
+  sprint        Sprint?                @relation(fields: [sprintId], references: [id])
+  mainActivity  MainActivity?          @relation(fields: [mainActivityId], references: [id])
+  assignee      User?                  @relation("CardAssignee", fields: [assigneeId], references: [id])
   createdBy   User                   @relation("CardCreator", fields: [createdById], references: [id])
   tags        CardTag[]
   comments    Comment[]
@@ -372,4 +375,17 @@ model UserNotificationPreference {
 
   @@unique([userId, notificationType])
   @@map("user_notification_preferences")
+}
+
+model MainActivity {
+  id        String   @id @default(uuid())
+  sprintId  String   @map("sprint_id")
+  name      String
+  color     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sprint Sprint @relation(fields: [sprintId], references: [id])
+  cards  Card[]
+
+  @@map("main_activities")
 }

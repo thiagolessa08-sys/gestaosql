@@ -74,6 +74,7 @@ interface UpdateCardInput {
     storyPoints?: number | null
     dueDate?: Date | null
     tagIds?: string[]
+    mainActivityId?: string | null
   }
 }
 

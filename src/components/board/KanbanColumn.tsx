@@ -19,6 +19,7 @@ interface Card {
   storyPoints: number | null
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+  mainActivity: { id: string; name: string; color: string } | null
 }
 
 interface Props {

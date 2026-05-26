@@ -16,7 +16,9 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Activity } from "lucide-react"
 import { startSprintAction, closeSprintAction } from "@/server/actions/sprints"
+import { SprintActivitiesPanel } from "@/components/sprints/SprintActivitiesPanel"
 
 interface Sprint {
   id: string
@@ -46,6 +48,7 @@ function formatDate(date: Date) {
 
 export function SprintList({
   sprints,
+  projectId,
   projectSlug,
   canManage,
   plannedSprints,
@@ -58,6 +61,7 @@ export function SprintList({
   const [closeDialogSprint, setCloseDialogSprint] = useState<Sprint | null>(null)
   const [destinationSprintId, setDestinationSprintId] = useState<string>("none")
   const [error, setError] = useState<string | null>(null)
+  const [activitiesDialogSprintId, setActivitiesDialogSprintId] = useState<string | null>(null)
 
   async function handleStart(sprintId: string) {
     setLoadingId(sprintId)
@@ -115,11 +119,19 @@ export function SprintList({
                 {formatDate(sprint.plannedStartDate)} → {formatDate(sprint.plannedEndDate)}
               </p>
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2 mt-3 flex-wrap">
                 <Button asChild size="sm">
                   <Link href={`/projetos/${projectSlug}/sprints/${sprint.id}/board`}>
                     Abrir board
                   </Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setActivitiesDialogSprintId(sprint.id)}
+                >
+                  <Activity className="h-3.5 w-3.5 mr-1" />
+                  Atividades
                 </Button>
                 {canManage && sprint.status === "PLANNED" && !hasActiveSprint && (
                   <Button
@@ -186,6 +198,25 @@ export function SprintList({
               {loadingId === closeDialogSprint?.id ? "Encerrando..." : "Encerrar sprint"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activities dialog */}
+      <Dialog
+        open={!!activitiesDialogSprintId}
+        onOpenChange={(open) => !open && setActivitiesDialogSprintId(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atividades principais</DialogTitle>
+          </DialogHeader>
+          {activitiesDialogSprintId && (
+            <SprintActivitiesPanel
+              sprintId={activitiesDialogSprintId}
+              projectId={projectId}
+              canManage={canManage}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
