@@ -24,6 +24,17 @@ const PROJECT_LIST_INCLUDE = {
     orderBy: { joinedAt: "asc" as const },
     include: { user: { select: { name: true } } },
   },
+  // Active sprint (at most 1)
+  sprints: {
+    where: { status: "ACTIVE" as const },
+    take: 1,
+    select: { name: true },
+  },
+  // Done cards for progress bar
+  cards: {
+    where: { status: "DONE" as const, archivedAt: null },
+    select: { id: true },
+  },
 } as const
 
 export async function findProjectsByMemberId(userId: string) {
