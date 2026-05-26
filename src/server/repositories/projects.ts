@@ -16,15 +16,23 @@ export async function findProjectById(id: string) {
   })
 }
 
+const PROJECT_LIST_INCLUDE = {
+  _count: { select: { members: true, sprints: true, cards: true } },
+  members: {
+    where: { removedAt: null },
+    take: 5,
+    orderBy: { joinedAt: "asc" as const },
+    include: { user: { select: { name: true } } },
+  },
+} as const
+
 export async function findProjectsByMemberId(userId: string) {
   return db.project.findMany({
     where: {
       archivedAt: null,
       members: { some: { userId, removedAt: null } },
     },
-    include: {
-      _count: { select: { members: true, sprints: true, cards: true } },
-    },
+    include: PROJECT_LIST_INCLUDE,
     orderBy: { updatedAt: "desc" },
   })
 }
@@ -32,9 +40,7 @@ export async function findProjectsByMemberId(userId: string) {
 export async function findAllProjects() {
   return db.project.findMany({
     where: { archivedAt: null },
-    include: {
-      _count: { select: { members: true, sprints: true, cards: true } },
-    },
+    include: PROJECT_LIST_INCLUDE,
     orderBy: { updatedAt: "desc" },
   })
 }

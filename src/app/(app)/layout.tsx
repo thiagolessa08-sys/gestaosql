@@ -1,55 +1,69 @@
 import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { auth, signOut } from "@/server/auth/config"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { NotificationBell } from "@/components/shared/NotificationBell"
 import { countUnreadNotifications } from "@/server/repositories/notifications"
+import { SidebarNav } from "@/components/layout/SidebarNav"
+import { getInitials, getUserAvatarColor } from "@/lib/project-colors"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
 
   const unreadCount = await countUnreadNotifications(session.user.id)
+  const initials = getInitials(session.user.name)
+  const avatarColor = getUserAvatarColor(session.user.name ?? "")
 
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-64 border-r flex flex-col">
-        <div className="p-4">
-          <h1 className="font-bold text-lg">SQLTech Gestão</h1>
+      <aside className="w-64 border-r bg-card flex flex-col shrink-0 shadow-sm">
+        {/* Logo */}
+        <div className="px-4 py-5 flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm tracking-tight"
+            style={{ background: "#14110E" }}
+          >
+            SQ
+          </div>
+          <span className="font-semibold text-sm text-foreground leading-tight">
+            SQLTech<br />
+            <span className="text-muted-foreground font-normal">Gestão</span>
+          </span>
         </div>
-        <Separator />
-        <nav className="flex-1 p-4 space-y-1">
-          <Link
-            href="/projetos"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-          >
-            Projetos
-          </Link>
-          <Link
-            href="/configuracoes/perfil"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-          >
-            Configurações
-          </Link>
-        </nav>
-        <Separator />
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-sm font-medium truncate">{session.user.name}</p>
+
+        {/* Nav */}
+        <SidebarNav />
+
+        {/* User section */}
+        <div className="border-t p-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
+              style={{ background: avatarColor.light, color: avatarColor.text }}
+            >
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate leading-tight">{session.user.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+            </div>
             <NotificationBell initialCount={unreadCount} />
           </div>
-          <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
           <form
             action={async () => {
               "use server"
               await signOut({ redirectTo: "/login" })
             }}
-            className="mt-2"
+            className="mt-3"
           >
-            <Button variant="ghost" size="sm" className="w-full justify-start" type="submit">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              type="submit"
+            >
               Sair
             </Button>
           </form>
@@ -58,7 +72,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6">{children}</div>
+        <div className="p-6 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   )
