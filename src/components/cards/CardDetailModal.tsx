@@ -327,6 +327,18 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
             </div>
           )}
 
+          {/* Subitens */}
+          <Separator />
+
+          {loadingCollab ? (
+            <p className="text-sm text-muted-foreground">Carregando subitens...</p>
+          ) : (
+            <ChecklistSection
+              cardId={card.id}
+              initialItems={checklistItems}
+            />
+          )}
+
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Separator />
@@ -347,22 +359,13 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
 
           <Separator />
 
-          {/* Collaboration sections */}
+          {/* Outros dados de colaboração */}
           {collabError && (
             <p className="text-sm text-destructive">{collabError}</p>
           )}
 
-          {loadingCollab ? (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
-          ) : (
+          {!loadingCollab && (
             <div className="space-y-6">
-              <ChecklistSection
-                cardId={card.id}
-                initialItems={checklistItems}
-              />
-
-              <Separator />
-
               <AttachmentSection
                 cardId={card.id}
                 initialAttachments={attachments}

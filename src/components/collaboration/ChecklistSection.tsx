@@ -112,7 +112,7 @@ export function ChecklistSection({ cardId, initialItems }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Checklist</h3>
+        <h3 className="text-sm font-semibold">Subitens</h3>
         {total > 0 && (
           <span className="text-xs text-muted-foreground">
             {doneCount} / {total} ({percent}%)
@@ -171,7 +171,7 @@ export function ChecklistSection({ cardId, initialItems }: Props) {
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Adicionar item..."
+          placeholder="Adicionar subitem..."
           className="text-sm h-8"
           disabled={isPending}
         />

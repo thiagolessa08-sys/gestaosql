@@ -76,6 +76,9 @@ export function CardItem({ card, onCardClick }: Props) {
               {card.storyPoints}
             </Badge>
           )}
+          {card._count.checklists > 0 && (
+            <span className="text-xs text-muted-foreground">☑ {card._count.checklists}</span>
+          )}
           {card._count.comments > 0 && (
             <span className="text-xs text-muted-foreground">{card._count.comments} 💬</span>
           )}
