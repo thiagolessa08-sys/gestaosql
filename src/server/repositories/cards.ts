@@ -41,6 +41,7 @@ export async function findBacklogCards(projectId: string, assigneeId?: string) {
     include: {
       assignee: { select: { id: true, name: true, avatarUrl: true } },
       tags: { include: { tag: true } },
+      mainActivity: { select: { id: true, name: true, color: true } },
       _count: { select: { comments: true, checklists: true } },
     },
     orderBy: { position: "asc" },
