@@ -2,7 +2,7 @@
 
 import { auth } from "@/server/auth/config"
 import { revalidatePath } from "next/cache"
-import { createCardSchema, updateCardSchema, moveCardSchema } from "@/lib/schemas/cards"
+import { createCardSchema, updateCardSchema, moveCardSchema, bulkAddCardsToSprintSchema } from "@/lib/schemas/cards"
 import { createCard, updateCard, archiveCard, moveCard, reorderCard } from "@/server/services/cards"
 import { findCardById, addCardToSprint } from "@/server/repositories/cards"
 import { findCommentsByCardId } from "@/server/repositories/comments"
@@ -10,6 +10,9 @@ import { findChecklistByCardId } from "@/server/repositories/checklists"
 import { findAttachmentsByCardId } from "@/server/repositories/attachments"
 import { createTag, deleteTag } from "@/server/repositories/tags"
 import { requirePermission, isMember } from "@/server/permissions"
+import { db } from "@/server/db"
+import { findSprintById } from "@/server/repositories/sprints"
+import { writeAudit } from "@/server/services/audit"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
 
@@ -216,6 +219,64 @@ export async function deleteTagAction(tagId: string, projectId: string): Promise
   await deleteTag(tagId)
   revalidatePath(`/projetos`)
   return { success: true }
+}
+
+export async function bulkAddCardsToSprintAction(
+  cardIds: string[],
+  sprintId: string
+): Promise<ActionResult<{ count: number }>> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const parsed = bulkAddCardsToSprintSchema.safeParse({ cardIds, sprintId })
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
+  }
+
+  const sprint = await findSprintById(sprintId)
+  if (!sprint) return { success: false, error: "Sprint não encontrada." }
+
+  try {
+    await requirePermission(session.user.id, sprint.projectId, "card:move")
+  } catch {
+    return { success: false, error: "Sem permissão para mover cards." }
+  }
+
+  // Carrega todos os cards de uma vez para validar projeto + filtrar válidos
+  const cards = await db.card.findMany({
+    where: { id: { in: parsed.data.cardIds }, archivedAt: null },
+    select: { id: true, projectId: true },
+  })
+
+  const validIds = cards
+    .filter((c) => c.projectId === sprint.projectId)
+    .map((c) => c.id)
+
+  if (validIds.length === 0) {
+    return { success: false, error: "Nenhum card válido para importar." }
+  }
+
+  await db.card.updateMany({
+    where: { id: { in: validIds } },
+    data: { sprintId: parsed.data.sprintId, status: "BACKLOG" },
+  })
+
+  // Audit log por card (preserva rastreabilidade individual)
+  await Promise.all(
+    validIds.map((cardId) =>
+      writeAudit({
+        projectId: sprint.projectId,
+        actorId: session.user.id,
+        entityType: "card",
+        entityId: cardId,
+        action: "MOVE",
+        changes: { after: { sprintId: parsed.data.sprintId } },
+      })
+    )
+  )
+
+  revalidatePath("/", "layout")
+  return { success: true, data: { count: validIds.length } }
 }
 
 // ---------------------------------------------------------------------------
