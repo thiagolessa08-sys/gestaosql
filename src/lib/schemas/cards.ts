@@ -32,3 +32,10 @@ export const moveCardSchema = z.object({
 export type CreateCardInput = z.infer<typeof createCardSchema>
 export type UpdateCardInput = z.infer<typeof updateCardSchema>
 export type MoveCardInput = z.infer<typeof moveCardSchema>
+
+export const bulkAddCardsToSprintSchema = z.object({
+  cardIds: z.array(z.string().uuid()).min(1, "Selecione ao menos um card").max(100, "Máximo de 100 cards por vez"),
+  sprintId: z.string().uuid(),
+})
+
+export type BulkAddCardsToSprintInput = z.infer<typeof bulkAddCardsToSprintSchema>
