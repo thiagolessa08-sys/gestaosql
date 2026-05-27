@@ -73,6 +73,9 @@ interface Props {
 export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, activities }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
+  // Store the status BEFORE drag so handleDragEnd can compare correctly
+  // (handleDragOver already updates the optimistic state, so card.status === overCol by the time handleDragEnd runs)
+  const [dragOriginStatus, setDragOriginStatus] = useState<CardStatus | null>(null)
 
   // Sync when server re-fetches data (e.g. after router.refresh())
   useEffect(() => {
@@ -95,7 +98,9 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
   }
 
   function handleDragStart({ active }: DragStartEvent) {
-    setActiveCard(cards.find((c) => c.id === active.id) ?? null)
+    const card = cards.find((c) => c.id === active.id) ?? null
+    setActiveCard(card)
+    setDragOriginStatus(card?.status ?? null) // snapshot status before any optimistic update
   }
 
   function handleDragOver({ active, over }: DragOverEvent) {
@@ -119,6 +124,9 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
 
   async function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveCard(null)
+    const originStatus = dragOriginStatus
+    setDragOriginStatus(null)
+
     if (!over) return
 
     const activeId = active.id as string
@@ -127,24 +135,24 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
     const card = cards.find((c) => c.id === activeId)
     if (!card) return
 
-    const activeCol = card.status
     const overCol = (COLUMNS.find((c) => c.id === overId)?.id ?? findCardColumn(overId)) as CardStatus | null
     if (!overCol) return
 
-    if (activeCol !== overCol) {
+    // Compare against the ORIGINAL status (before optimistic update in handleDragOver)
+    if (originStatus !== overCol) {
       // Moved to different column — persist status change
       const formData = new FormData()
       formData.set("toStatus", overCol)
       await moveCardAction(activeId, formData)
     } else {
       // Reordered within same column
-      const colCards = getCardsByStatus(activeCol)
+      const colCards = getCardsByStatus(overCol)
       const oldIndex = colCards.findIndex((c) => c.id === activeId)
       const newIndex = colCards.findIndex((c) => c.id === overId)
       if (oldIndex !== newIndex && newIndex >= 0) {
         const reordered = arrayMove(colCards, oldIndex, newIndex)
         setCards((prev) => {
-          const otherCards = prev.filter((c) => c.status !== activeCol)
+          const otherCards = prev.filter((c) => c.status !== overCol)
           return [...otherCards, ...reordered.map((c, i) => ({ ...c, position: i }))]
         })
         await reorderCardAction(activeId, newIndex)

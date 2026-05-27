@@ -139,7 +139,7 @@ export async function moveCardAction(
     actorId: session.user.id,
   })
 
-  revalidatePath(`/projetos`)
+  revalidatePath("/", "layout")
   return { success: true }
 }
 
@@ -157,7 +157,7 @@ export async function reorderCardAction(cardId: string, newPosition: number): Pr
   }
 
   await reorderCard(cardId, newPosition)
-  revalidatePath(`/projetos`)
+  revalidatePath("/", "layout")
   return { success: true }
 }
 
