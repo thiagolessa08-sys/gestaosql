@@ -26,15 +26,25 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <div className="relative bg-card rounded-2xl border overflow-hidden hover:shadow-md transition-all duration-200 h-full flex flex-col">
-      {/* Invisible full-card link */}
-      <Link href={`/projetos/${project.slug}`} className="absolute inset-0 z-0" aria-label={project.name} />
-      {/* Color accent strip */}
-      <div className="relative z-10 h-1.5 w-full shrink-0" style={{ background: color.accent }} />
-      <div className="relative z-10 p-5 flex flex-col flex-1 gap-4">
 
-        {/* Header: icon + name + menu */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
+      {/* Settings button — absolutamente posicionado FORA do link principal, sem aninhamento */}
+      <Link
+        href={`/projetos/${project.slug}/configuracoes`}
+        className="absolute top-3 right-3 z-10 text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-accent transition-colors"
+        title="Configurações do projeto"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </Link>
+
+      {/* Link principal — envolve TODO o conteúdo do card */}
+      <Link href={`/projetos/${project.slug}`} className="flex flex-col flex-1">
+        {/* Color accent strip */}
+        <div className="h-1.5 w-full shrink-0" style={{ background: color.accent }} />
+
+        <div className="p-5 flex flex-col flex-1 gap-4">
+
+          {/* Header: icon + name (sem o botão ⋯) */}
+          <div className="flex items-start gap-3 min-w-0 pr-6">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold"
               style={{ background: color.light, color: color.text }}
@@ -57,14 +67,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
               )}
             </div>
           </div>
-          <Link
-            href={`/projetos/${project.slug}/configuracoes`}
-            className="relative z-20 text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-accent transition-colors shrink-0"
-            title="Configurações do projeto"
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </Link>
-        </div>
 
         {/* Progress */}
         <div>
@@ -133,7 +135,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
           )}
         </div>
 
-      </div>
+        </div>
+
+      </Link>
     </div>
   )
 }
