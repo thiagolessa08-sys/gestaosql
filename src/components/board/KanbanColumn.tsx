@@ -111,6 +111,15 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
                 <X className="h-3 w-3" />
               </Button>
             </div>
+            {isBacklog && (
+              <button
+                type="button"
+                className="text-[11px] text-muted-foreground hover:text-foreground text-left underline underline-offset-2 mt-0.5 w-fit"
+                onClick={() => { setAdding(false); setTitleInput(""); setImportOpen(true) }}
+              >
+                ou importar do backlog do projeto
+              </button>
+            )}
           </div>
         ) : isBacklog ? (
           <AddCardMenu
