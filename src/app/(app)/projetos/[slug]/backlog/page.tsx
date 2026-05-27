@@ -4,11 +4,10 @@ import { findProjectBySlug } from "@/server/repositories/projects"
 import { findBacklogCards } from "@/server/repositories/cards"
 import { findMembersByProjectId } from "@/server/repositories/members"
 import { findSprintsByProjectId } from "@/server/repositories/sprints"
+import { findTagsByProjectId } from "@/server/repositories/tags"
 import { getMemberRole } from "@/server/permissions"
+import { BacklogList } from "@/components/backlog/BacklogList"
 import { CardForm } from "@/components/cards/CardForm"
-import { PriorityBadge } from "@/components/shared/PriorityBadge"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -24,18 +23,23 @@ export default async function BacklogPage({ params }: Props) {
 
   const currentRole = await getMemberRole(session.user.id, project.id)
   const canCreate = !!currentRole
+  const canMove = !!currentRole
+  const canArchive =
+    session.user.isSystemAdmin || currentRole === "ADMIN" || currentRole === "SCRUM_MASTER"
 
-  // Members only see cards assigned to them; admins/scrum masters see all
   const isMemberOnly =
     !session.user.isSystemAdmin && currentRole === "MEMBER"
 
-  const [cards, members, sprints] = await Promise.all([
+  const [cards, members, allTags, sprints] = await Promise.all([
     findBacklogCards(project.id, isMemberOnly ? session.user.id : undefined),
     findMembersByProjectId(project.id),
+    findTagsByProjectId(project.id),
     findSprintsByProjectId(project.id),
   ])
 
-  const plannedSprints = sprints.filter((s) => s.status === "PLANNED" || s.status === "ACTIVE")
+  const targetableSprints = sprints
+    .filter((s) => s.status === "PLANNED" || s.status === "ACTIVE")
+    .map((s) => ({ id: s.id, name: s.name, status: s.status }))
 
   return (
     <div>
@@ -47,34 +51,16 @@ export default async function BacklogPage({ params }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-2">
-          {cards.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Nenhum card no backlog.</p>
-            </div>
-          )}
-          {cards.map((card) => (
-            <div
-              key={card.id}
-              className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{card.title}</p>
-                {card.assignee && (
-                  <p className="text-xs text-muted-foreground">{card.assignee.name}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <PriorityBadge priority={card.priority} />
-                {card.storyPoints != null && (
-                  <Badge variant="outline" className="text-xs">{card.storyPoints} pts</Badge>
-                )}
-                {card._count.comments > 0 && (
-                  <span className="text-xs text-muted-foreground">{card._count.comments} comentários</span>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="lg:col-span-2">
+          <BacklogList
+            cards={cards}
+            members={members}
+            allTags={allTags}
+            sprints={targetableSprints}
+            canMove={canMove}
+            canArchive={canArchive}
+            currentUserId={session.user.id}
+          />
         </div>
 
         {canCreate && (
