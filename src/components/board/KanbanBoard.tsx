@@ -38,6 +38,7 @@ interface Card {
   tags: { tag: { id: string; name: string; color: string } }[]
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+  checklistsDone: number
   mainActivityId: string | null
   mainActivity: MainActivity | null
 }
@@ -67,10 +68,11 @@ interface Props {
   currentUserId: string
   projectId: string
   sprintId: string
+  sprintName?: string
   activities: MainActivity[]
 }
 
-export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, activities }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, sprintName, activities }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   // Store the status BEFORE drag so handleDragEnd can compare correctly
@@ -209,6 +211,7 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
           members={members}
           allTags={allTags}
           activities={activities}
+          sprintName={sprintName}
           open={!!selectedCardId}
           onClose={() => setSelectedCardId(null)}
           currentUserId={currentUserId}

@@ -23,6 +23,7 @@ export async function findCardsBySprintId(sprintId: string, assigneeId?: string)
       assignee: { select: { id: true, name: true, avatarUrl: true } },
       tags: { include: { tag: true } },
       mainActivity: { select: { id: true, name: true, color: true } },
+      checklists: { where: { isDone: true }, select: { id: true } },
       _count: { select: { comments: true, checklists: true } },
     },
     orderBy: [{ status: "asc" }, { position: "asc" }],

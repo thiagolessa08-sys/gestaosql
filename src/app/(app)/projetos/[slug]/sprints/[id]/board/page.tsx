@@ -39,12 +39,17 @@ export default async function BoardPage({ params }: Props) {
   const isMemberOnly =
     !session.user.isSystemAdmin && role === "MEMBER"
 
-  const [cards, members, allTags, activities] = await Promise.all([
+  const [rawCards, members, allTags, activities] = await Promise.all([
     findCardsBySprintId(id, isMemberOnly ? session.user.id : undefined),
     findMembersByProjectId(project.id),
     findTagsByProjectId(project.id),
     findMainActivitiesBySprintId(id),
   ])
+
+  const cards = rawCards.map(({ checklists, ...rest }) => ({
+    ...rest,
+    checklistsDone: checklists.length,
+  }))
 
   return (
     <div>
@@ -77,6 +82,7 @@ export default async function BoardPage({ params }: Props) {
         currentUserId={session.user.id}
         projectId={project.id}
         sprintId={id}
+        sprintName={sprint.name}
         activities={activities}
       />
     </div>

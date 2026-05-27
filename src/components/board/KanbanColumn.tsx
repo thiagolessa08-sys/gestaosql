@@ -17,8 +17,10 @@ interface Card {
   status: string
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   storyPoints: number | null
+  dueDate: Date | null
   assignee: { id: string; name: string; avatarUrl: string | null } | null
   _count: { comments: number; checklists: number }
+  checklistsDone: number
   mainActivity: { id: string; name: string; color: string } | null
 }
 

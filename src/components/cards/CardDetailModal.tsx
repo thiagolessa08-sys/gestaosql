@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -13,8 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { UserPicker } from "@/components/shared/UserPicker"
 import { TagPicker } from "@/components/shared/TagPicker"
 import { updateCardAction, archiveCardAction, getCardCommentsAction, getCardChecklistAction, getCardAttachmentsAction } from "@/server/actions/cards"
@@ -47,7 +44,6 @@ interface Card {
   mainActivityId?: string | null
 }
 
-// Types inferred from the action return types
 type CommentItem = {
   id: string
   body: string
@@ -79,19 +75,27 @@ interface Props {
   members: Member[]
   allTags: Tag[]
   activities: { id: string; name: string; color: string }[]
+  sprintName?: string
   open: boolean
   onClose: () => void
   currentUserId: string
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  BACKLOG: "Backlog",
-  DOING: "Em andamento",
-  VALIDATION: "Validação",
-  DONE: "Concluído",
+const STATUS_CONFIG: Record<string, { label: string; dot: string }> = {
+  BACKLOG: { label: "Backlog", dot: "bg-muted-foreground" },
+  DOING: { label: "Em andamento", dot: "bg-orange-500" },
+  VALIDATION: { label: "Validação", dot: "bg-blue-500" },
+  DONE: { label: "Concluído", dot: "bg-emerald-500" },
 }
 
-export function CardDetailModal({ card, members, allTags, activities, open, onClose, currentUserId }: Props) {
+const PRIORITY_LABELS: Record<string, string> = {
+  LOW: "Baixa",
+  MEDIUM: "Média",
+  HIGH: "Alta",
+  CRITICAL: "Crítica",
+}
+
+export function CardDetailModal({ card, members, allTags, activities, sprintName, open, onClose, currentUserId }: Props) {
   const router = useRouter()
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description ?? "")
@@ -106,7 +110,6 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Collaboration data
   const [comments, setComments] = useState<CommentItem[]>([])
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
   const [attachments, setAttachments] = useState<AttachmentItem[]>([])
@@ -115,7 +118,6 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
 
   useEffect(() => {
     if (!open) return
-
     let cancelled = false
     setLoadingCollab(true)
 
@@ -132,11 +134,7 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
             body: c.body,
             createdAt: c.createdAt,
             authorId: c.authorId,
-            author: {
-              id: c.author.id,
-              name: c.author.name ?? null,
-              avatarUrl: c.author.avatarUrl ?? null,
-            },
+            author: { id: c.author.id, name: c.author.name ?? null, avatarUrl: c.author.avatarUrl ?? null },
           }))
         )
       }
@@ -191,10 +189,7 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
 
     const result = await updateCardAction(card.id, formData)
     setSaving(false)
-    if (!result.success) {
-      setError(result.error)
-      return
-    }
+    if (!result.success) { setError(result.error); return }
     router.refresh()
     onClose()
   }
@@ -202,55 +197,137 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
   async function handleArchive() {
     if (!confirm("Arquivar este card?")) return
     const result = await archiveCardAction(card.id)
-    if (!result.success) {
-      setError(result.error)
-      return
-    }
+    if (!result.success) { setError(result.error); return }
     router.refresh()
     onClose()
   }
 
+  const statusCfg = STATUS_CONFIG[card.status] ?? { label: card.status, dot: "bg-muted-foreground" }
+
+  // Find current tag for display
+  const firstTag = selectedTagIds.length > 0
+    ? allTags.find((t) => t.id === selectedTagIds[0])
+    : null
+
+  // Find current activity
+  const currentActivity = activities.find((a) => a.id === mainActivityId) ?? null
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+        {/* Visually hidden title for accessibility */}
+        <DialogTitle className="sr-only">Detalhes do card</DialogTitle>
+
+        {/* Header bar */}
+        <div className="flex items-center gap-2 px-6 py-3 border-b shrink-0 pr-12">
+          <span className="text-xs text-muted-foreground font-mono">
+            {card.id.slice(-6).toUpperCase()}
+          </span>
+          {currentActivity && (
+            <>
+              <span className="text-muted-foreground/40">·</span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span
+                  className="h-2 w-2 rounded-full inline-block flex-shrink-0"
+                  style={{ backgroundColor: currentActivity.color }}
+                />
+                {currentActivity.name}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Two-panel body */}
+        <div className="flex flex-1 overflow-hidden min-h-0">
+
+          {/* ── Left panel ── */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+
+            {/* Editable title */}
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-lg font-semibold border-none shadow-none p-0 h-auto focus-visible:ring-0"
+              className="text-xl font-semibold border-none shadow-none p-0 h-auto focus-visible:ring-0 bg-transparent"
               placeholder="Título do card"
             />
-          </DialogTitle>
-        </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Status (read-only, moved via board) */}
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">{STATUS_LABELS[card.status] ?? card.status}</Badge>
-            <span className="text-xs text-muted-foreground">Mova o card no board para alterar o status</span>
+            {/* Description */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Descrição
+              </p>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                maxLength={5000}
+                placeholder="Adicione uma descrição..."
+                className="resize-none text-sm"
+              />
+            </div>
+
+            {/* Subtasks / Checklist */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Subtarefas
+              </p>
+              {loadingCollab ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : (
+                <ChecklistSection cardId={card.id} initialItems={checklistItems} />
+              )}
+            </div>
+
+            {/* Comments */}
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Comentários
+              </p>
+              {collabError && <p className="text-xs text-destructive mb-2">{collabError}</p>}
+              {!loadingCollab && (
+                <CommentList
+                  cardId={card.id}
+                  currentUserId={currentUserId}
+                  initialComments={comments}
+                />
+              )}
+            </div>
           </div>
 
-          <Separator />
+          {/* ── Right sidebar ── */}
+          <div className="w-[220px] shrink-0 border-l overflow-y-auto px-4 py-5 space-y-4 bg-muted/20">
 
-          {/* Description */}
-          <div className="space-y-1">
-            <Label>Descrição</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              maxLength={5000}
-              placeholder="Adicione uma descrição..."
-            />
-          </div>
+            {/* STATUS */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Status
+              </Label>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className={`h-2 w-2 rounded-full flex-shrink-0 ${statusCfg.dot}`} />
+                <span className="text-sm">{statusCfg.label}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Mova no board para alterar
+              </p>
+            </div>
 
-          {/* Priority + Story Points */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label>Prioridade</Label>
+            {/* RESPONSÁVEL */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Responsável
+              </Label>
+              <div className="mt-1.5">
+                <UserPicker members={members} value={assigneeId} onChange={setAssigneeId} />
+              </div>
+            </div>
+
+            {/* PRIORIDADE */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Prioridade
+              </Label>
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1.5 h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -261,125 +338,119 @@ export function CardDetailModal({ card, members, allTags, activities, open, onCl
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <Label>Story points</Label>
+
+            {/* PRAZO */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Prazo
+              </Label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="mt-1.5 h-8 text-sm"
+              />
+            </div>
+
+            {/* SPRINT */}
+            {sprintName && (
+              <div>
+                <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Sprint
+                </Label>
+                <p className="text-sm mt-1.5">{sprintName}</p>
+              </div>
+            )}
+
+            {/* TAG */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Tags
+              </Label>
+              <div className="mt-1.5">
+                <TagPicker
+                  projectId={card.projectId}
+                  allTags={allTags}
+                  selectedTagIds={selectedTagIds}
+                  onChange={setSelectedTagIds}
+                />
+              </div>
+            </div>
+
+            {/* ATIVIDADE PRINCIPAL */}
+            {activities.length > 0 && (
+              <div>
+                <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Atividade
+                </Label>
+                <Select value={mainActivityId} onValueChange={setMainActivityId}>
+                  <SelectTrigger className="mt-1.5 h-8 text-sm">
+                    <SelectValue placeholder="Nenhuma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {activities.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="h-2.5 w-2.5 rounded-full inline-block flex-shrink-0"
+                            style={{ backgroundColor: a.color }}
+                          />
+                          {a.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* STORY POINTS */}
+            <div>
+              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Story points
+              </Label>
               <Input
                 type="number"
                 value={storyPoints}
                 onChange={(e) => setStoryPoints(e.target.value)}
                 min={0}
                 max={100}
-                placeholder="0"
+                placeholder="—"
+                className="mt-1.5 h-8 text-sm"
               />
             </div>
-          </div>
 
-          {/* Assignee */}
-          <div className="space-y-1">
-            <Label>Responsável</Label>
-            <UserPicker members={members} value={assigneeId} onChange={setAssigneeId} />
-          </div>
+            {/* ANEXOS */}
+            {!loadingCollab && (
+              <div>
+                <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Anexos
+                </Label>
+                <div className="mt-1.5">
+                  <AttachmentSection cardId={card.id} initialAttachments={attachments} />
+                </div>
+              </div>
+            )}
 
-          {/* Due date */}
-          <div className="space-y-1">
-            <Label>Prazo</Label>
-            <Input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
-          </div>
+            {/* Error */}
+            {error && <p className="text-xs text-destructive">{error}</p>}
 
-          {/* Tags */}
-          <div className="space-y-1">
-            <Label>Tags</Label>
-            <TagPicker
-              projectId={card.projectId}
-              allTags={allTags}
-              selectedTagIds={selectedTagIds}
-              onChange={setSelectedTagIds}
-            />
-          </div>
-
-          {/* Atividade Principal */}
-          {activities.length > 0 && (
-            <div className="space-y-1">
-              <Label>Atividade principal</Label>
-              <Select value={mainActivityId} onValueChange={setMainActivityId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Nenhuma" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma</SelectItem>
-                  {activities.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="h-2.5 w-2.5 rounded-full inline-block flex-shrink-0"
-                          style={{ backgroundColor: a.color }}
-                        />
-                        {a.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Subitens */}
-          <Separator />
-
-          {loadingCollab ? (
-            <p className="text-sm text-muted-foreground">Carregando subitens...</p>
-          ) : (
-            <ChecklistSection
-              cardId={card.id}
-              initialItems={checklistItems}
-            />
-          )}
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Separator />
-
-          <div className="flex justify-between">
-            <Button variant="destructive" size="sm" onClick={handleArchive}>
-              Arquivar
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button size="sm" onClick={handleSave} disabled={saving}>
+            {/* Actions */}
+            <div className="space-y-2 pt-2 border-t">
+              <Button size="sm" className="w-full" onClick={handleSave} disabled={saving}>
                 {saving ? "Salvando..." : "Salvar"}
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleArchive}
+              >
+                Arquivar card
+              </Button>
             </div>
           </div>
-
-          <Separator />
-
-          {/* Outros dados de colaboração */}
-          {collabError && (
-            <p className="text-sm text-destructive">{collabError}</p>
-          )}
-
-          {!loadingCollab && (
-            <div className="space-y-6">
-              <AttachmentSection
-                cardId={card.id}
-                initialAttachments={attachments}
-              />
-
-              <Separator />
-
-              <CommentList
-                cardId={card.id}
-                currentUserId={currentUserId}
-                initialComments={comments}
-              />
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
