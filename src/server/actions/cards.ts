@@ -4,12 +4,12 @@ import { auth } from "@/server/auth/config"
 import { revalidatePath } from "next/cache"
 import { createCardSchema, updateCardSchema, moveCardSchema, bulkAddCardsToSprintSchema } from "@/lib/schemas/cards"
 import { createCard, updateCard, archiveCard, moveCard, reorderCard } from "@/server/services/cards"
-import { findCardById, addCardToSprint } from "@/server/repositories/cards"
+import { findCardById, addCardToSprint, findBacklogCards } from "@/server/repositories/cards"
 import { findCommentsByCardId } from "@/server/repositories/comments"
 import { findChecklistByCardId } from "@/server/repositories/checklists"
 import { findAttachmentsByCardId } from "@/server/repositories/attachments"
 import { createTag, deleteTag } from "@/server/repositories/tags"
-import { requirePermission, isMember } from "@/server/permissions"
+import { requirePermission, isMember, getMemberRole } from "@/server/permissions"
 import { db } from "@/server/db"
 import { findSprintById } from "@/server/repositories/sprints"
 import { writeAudit } from "@/server/services/audit"
@@ -333,4 +333,27 @@ export async function getCardAttachmentsAction(
 
   const attachments = await findAttachmentsByCardId(cardId)
   return { success: true, data: attachments }
+}
+
+type BacklogCardData = Awaited<ReturnType<typeof findBacklogCards>>[number]
+
+export async function getProjectBacklogCardsAction(
+  projectId: string
+): Promise<ActionResult<BacklogCardData[]>> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const canAccess = await isMember(session.user.id, projectId)
+  if (!canAccess) return { success: false, error: "Sem permissão." }
+
+  // Members só veem cards atribuídos a eles (consistente com a página /backlog)
+  const role = await getMemberRole(session.user.id, projectId)
+  const isMemberOnly = !session.user.isSystemAdmin && role === "MEMBER"
+
+  const cards = await findBacklogCards(
+    projectId,
+    isMemberOnly ? session.user.id : undefined
+  )
+
+  return { success: true, data: cards }
 }
