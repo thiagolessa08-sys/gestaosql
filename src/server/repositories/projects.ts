@@ -1,4 +1,5 @@
 import { db } from "@/server/db"
+import type { CardStatus } from "@prisma/client"
 
 export async function findProjectBySlug(slug: string) {
   return db.project.findUnique({
@@ -76,5 +77,26 @@ export async function archiveProject(id: string) {
   return db.project.update({
     where: { id },
     data: { archivedAt: new Date() },
+  })
+}
+
+export async function getProjectCardStats(projectId: string) {
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const [total, done, thisWeek] = await Promise.all([
+    db.card.count({ where: { projectId, archivedAt: null } }),
+    db.card.count({ where: { projectId, archivedAt: null, status: "DONE" as CardStatus } }),
+    db.card.count({ where: { projectId, archivedAt: null, createdAt: { gte: oneWeekAgo } } }),
+  ])
+  return { total, done, thisWeek }
+}
+
+export async function findRecentProjectsForSidebar(userId: string, isSystemAdmin: boolean) {
+  return db.project.findMany({
+    where: isSystemAdmin
+      ? { archivedAt: null }
+      : { archivedAt: null, members: { some: { userId, removedAt: null } } },
+    select: { id: true, name: true, slug: true },
+    orderBy: { updatedAt: "desc" },
+    take: 5,
   })
 }

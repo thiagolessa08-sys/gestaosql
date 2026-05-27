@@ -12,6 +12,20 @@ export async function findSprintsByProjectId(projectId: string) {
   })
 }
 
+export async function findSprintsWithProgressByProjectId(projectId: string) {
+  return db.sprint.findMany({
+    where: { projectId },
+    orderBy: { plannedStartDate: "desc" },
+    include: {
+      _count: { select: { cards: true } },
+      cards: {
+        where: { status: "DONE", archivedAt: null },
+        select: { id: true },
+      },
+    },
+  })
+}
+
 export async function findActiveSprintByProjectId(projectId: string) {
   return db.sprint.findFirst({
     where: { projectId, status: "ACTIVE" },

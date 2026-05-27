@@ -4,14 +4,20 @@ import { auth, signOut } from "@/server/auth/config"
 import { Button } from "@/components/ui/button"
 import { NotificationBell } from "@/components/shared/NotificationBell"
 import { countUnreadNotifications } from "@/server/repositories/notifications"
+import { findRecentProjectsForSidebar } from "@/server/repositories/projects"
 import { SidebarNav } from "@/components/layout/SidebarNav"
+import { SidebarRecentProjects } from "@/components/layout/SidebarRecentProjects"
 import { getInitials, getUserAvatarColor } from "@/lib/project-colors"
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const unreadCount = await countUnreadNotifications(session.user.id)
+  const [unreadCount, recentProjects] = await Promise.all([
+    countUnreadNotifications(session.user.id),
+    findRecentProjectsForSidebar(session.user.id, session.user.isSystemAdmin),
+  ])
+
   const initials = getInitials(session.user.name)
   const avatarColor = getUserAvatarColor(session.user.name ?? "")
 
@@ -27,17 +33,22 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           >
             SQ
           </div>
-          <span className="font-semibold text-sm text-foreground leading-tight">
-            SQLTech<br />
-            <span className="text-muted-foreground font-normal">Gestão</span>
-          </span>
+          <div className="leading-tight">
+            <p className="font-semibold text-sm text-foreground">SQLTech</p>
+            <p className="text-xs text-muted-foreground">Gestão</p>
+          </div>
         </div>
 
-        {/* Nav */}
+        {/* Main nav */}
         <SidebarNav />
 
+        {/* Projetos recentes */}
+        {recentProjects.length > 0 && (
+          <SidebarRecentProjects projects={recentProjects} />
+        )}
+
         {/* User section */}
-        <div className="border-t p-4">
+        <div className="border-t p-4 mt-auto">
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
