@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useSession, signIn } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { changePassword } from "@/server/actions/auth"
 
 export default function TrocarSenhaPage() {
   const router = useRouter()
-  const { update } = useSession()
+  const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,16 +31,39 @@ export default function TrocarSenhaPage() {
 
     setLoading(true)
     const result = await changePassword(formData)
-    setLoading(false)
 
     if (!result.success) {
+      setLoading(false)
       setError(result.error)
       return
     }
 
-    // Atualiza o JWT para refletir mustChangePassword: false
-    await update({ mustChangePassword: false })
+    // Reemite o JWT com mustChangePassword: false fazendo signIn programático
+    // com a nova senha. O useSession().update() do NextAuth v5 beta não está
+    // propagando o flag para o cookie de forma confiável, então o middleware
+    // continuaria redirecionando para /trocar-senha em loop.
+    const email = session?.user?.email
+    if (!email) {
+      setLoading(false)
+      setError("Sessão inválida. Faça login novamente.")
+      return
+    }
+
+    const signInResult = await signIn("credentials", {
+      email,
+      password: newPassword,
+      redirect: false,
+    })
+
+    setLoading(false)
+
+    if (signInResult?.error) {
+      setError("Senha atualizada, mas a sessão não foi renovada. Faça login novamente.")
+      return
+    }
+
     router.push("/projetos")
+    router.refresh()
   }
 
   return (
