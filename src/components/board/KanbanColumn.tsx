@@ -91,7 +91,37 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
           ))}
         </SortableContext>
 
-        {adding ? (
+        {isBacklog ? (
+          <div className="flex flex-col gap-1 mt-1">
+            {adding && (
+              <>
+                <Input
+                  ref={inputRef}
+                  autoFocus
+                  placeholder="Título do card..."
+                  value={title_input}
+                  onChange={(e) => setTitleInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={loading}
+                  className="text-sm h-8"
+                />
+                <div className="flex gap-1">
+                  <Button size="sm" className="h-7 text-xs flex-1" onClick={handleAdd} disabled={loading || !title_input.trim()}>
+                    {loading ? "Criando..." : "Adicionar"}
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => { setAdding(false); setTitleInput("") }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </>
+            )}
+            <AddCardMenu
+              onCreateNew={() => { setAdding(true) }}
+              onImport={() => { setAdding(false); setTitleInput(""); setImportOpen(true) }}
+              canImport={true}
+            />
+          </div>
+        ) : adding ? (
           <div className="flex flex-col gap-1 mt-1">
             <Input
               ref={inputRef}
@@ -111,22 +141,7 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
                 <X className="h-3 w-3" />
               </Button>
             </div>
-            {isBacklog && (
-              <button
-                type="button"
-                className="text-[11px] text-muted-foreground hover:text-foreground text-left underline underline-offset-2 mt-0.5 w-fit"
-                onClick={() => { setAdding(false); setTitleInput(""); setImportOpen(true) }}
-              >
-                ou importar do backlog do projeto
-              </button>
-            )}
           </div>
-        ) : isBacklog ? (
-          <AddCardMenu
-            onCreateNew={() => setAdding(true)}
-            onImport={() => setImportOpen(true)}
-            canImport={true}
-          />
         ) : (
           <Button
             variant="ghost"
