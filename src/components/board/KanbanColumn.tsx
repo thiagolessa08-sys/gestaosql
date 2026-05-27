@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { useDroppable } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CardItem } from "./CardItem"
+import { AddCardMenu } from "./AddCardMenu"
+import { ImportBacklogDialog } from "@/components/backlog/ImportBacklogDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,7 +41,10 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
   const [adding, setAdding] = useState(false)
   const [title_input, setTitleInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const isBacklog = id === "BACKLOG"
 
   async function handleAdd() {
     const t = title_input.trim()
@@ -107,6 +112,12 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
               </Button>
             </div>
           </div>
+        ) : isBacklog ? (
+          <AddCardMenu
+            onCreateNew={() => setAdding(true)}
+            onImport={() => setImportOpen(true)}
+            canImport={true}
+          />
         ) : (
           <Button
             variant="ghost"
@@ -118,6 +129,15 @@ export function KanbanColumn({ id, title, cards, onCardClick, projectId, sprintI
           </Button>
         )}
       </div>
+
+      {isBacklog && (
+        <ImportBacklogDialog
+          open={importOpen}
+          onClose={() => setImportOpen(false)}
+          projectId={projectId}
+          sprintId={sprintId}
+        />
+      )}
     </div>
   )
 }
