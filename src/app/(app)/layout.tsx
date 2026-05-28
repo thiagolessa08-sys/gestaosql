@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-card flex flex-col shrink-0 shadow-sm">
         {/* Logo */}
-        <div className="px-4 py-4 flex items-center">
+        <div className="px-4 py-4 flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="SQLTech" className="h-14 w-auto object-contain dark:invert" />
         </div>
