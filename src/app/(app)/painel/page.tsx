@@ -11,6 +11,7 @@ import {
 import { DashboardClock } from "@/components/dashboard/DashboardClock"
 import { BurndownChart } from "@/components/dashboard/BurndownChart"
 import { VelocityChart } from "@/components/dashboard/VelocityChart"
+import { PainelFullscreenWrapper } from "@/components/dashboard/PainelFullscreenWrapper"
 import { getInitials } from "@/lib/project-colors"
 
 export const revalidate = 30 // revalidate every 30s
@@ -59,6 +60,7 @@ export default async function PainelPage() {
   const activeProjectsNoSprint = projects.filter((p) => p.sprint === null).length
 
   return (
+    <PainelFullscreenWrapper>
     <div className="space-y-6">
       {/* ─── Header ─── */}
       <div className="flex items-center justify-between gap-6 pb-4 border-b">
@@ -362,5 +364,6 @@ export default async function PainelPage() {
         </div>
       )}
     </div>
+    </PainelFullscreenWrapper>
   )
 }
