@@ -12,6 +12,7 @@ import { DashboardClock } from "@/components/dashboard/DashboardClock"
 import { BurndownChart } from "@/components/dashboard/BurndownChart"
 import { VelocityChart } from "@/components/dashboard/VelocityChart"
 import { PainelFullscreenWrapper } from "@/components/dashboard/PainelFullscreenWrapper"
+import { AutoRefresh } from "@/components/dashboard/AutoRefresh"
 import { getInitials } from "@/lib/project-colors"
 
 export const revalidate = 30 // revalidate every 30s
@@ -98,7 +99,10 @@ export default async function PainelPage() {
           </div>
         </div>
 
-        <DashboardClock />
+        <div className="flex flex-col items-end gap-1">
+          <DashboardClock />
+          <AutoRefresh intervalSeconds={60} />
+        </div>
       </div>
 
       {/* ─── Main 3-column grid ─── */}
