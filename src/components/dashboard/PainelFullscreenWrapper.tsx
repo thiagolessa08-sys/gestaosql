@@ -34,7 +34,7 @@ export function PainelFullscreenWrapper({ children }: Props) {
 
   return (
     <div className="relative">
-      <div className="absolute top-0 right-0 z-10">
+      <div className="absolute top-0 right-52 z-10">
         <Button
           variant="ghost"
           size="sm"
