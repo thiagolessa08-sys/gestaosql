@@ -67,11 +67,9 @@ export default async function PainelPage() {
       <div className="flex items-center justify-between gap-6 pb-4 border-b">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-foreground text-background text-sm font-bold">
-              SQ
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="SQLTech" className="h-10 w-auto object-contain dark:invert" />
             <div>
-              <h1 className="text-lg font-bold leading-tight">SQLTech Gestão</h1>
               <p className="text-xs text-muted-foreground">Painel de operações · tempo real</p>
             </div>
           </div>

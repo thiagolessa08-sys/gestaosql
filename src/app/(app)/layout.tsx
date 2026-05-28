@@ -26,17 +26,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 border-r bg-card flex flex-col shrink-0 shadow-sm">
         {/* Logo */}
-        <div className="px-4 py-5 flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-sm tracking-tight"
-            style={{ background: "#14110E" }}
-          >
-            SQ
-          </div>
-          <div className="leading-tight">
-            <p className="font-semibold text-sm text-foreground">SQLTech</p>
-            <p className="text-xs text-muted-foreground">Gestão</p>
-          </div>
+        <div className="px-4 py-4 flex items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="SQLTech" className="h-10 w-auto object-contain dark:invert" />
         </div>
 
         {/* Main nav */}
