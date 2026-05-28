@@ -57,12 +57,18 @@ export async function getDashboardProjects() {
           },
         },
       },
+      cards: {
+        where: { archivedAt: null },
+        select: { id: true, status: true },
+      },
     },
   })
 
   return projects.map((p) => {
     const sprint = p.sprints[0] ?? null
-    const cards = sprint?.cards ?? []
+
+    // Use sprint cards when active, otherwise all project cards
+    const cards = sprint ? sprint.cards : p.cards
     const total = cards.length
     const done = cards.filter((c) => c.status === "DONE").length
     const doing = cards.filter((c) => c.status === "DOING").length

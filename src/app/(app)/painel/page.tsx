@@ -136,9 +136,13 @@ export default async function PainelPage() {
                       <p className="text-sm font-medium truncate">{p.name}</p>
                     </div>
                     <p className="text-[10px] text-muted-foreground truncate">
-                      {hasActive ? `${p.sprint!.name} · ${p.sprint!.dayLabel}` : "Sem sprint ativa"}
+                      {hasActive
+                        ? `${p.sprint!.name} · ${p.sprint!.dayLabel}`
+                        : p.total > 0
+                          ? `Backlog geral · ${p.total} cards`
+                          : "Sem cards"}
                     </p>
-                    {hasActive && p.total > 0 && (
+                    {p.total > 0 && (
                       <div className="flex items-center gap-1 mt-1.5">
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden flex">
                           <div className="h-full bg-emerald-500" style={{ width: `${(p.done / p.total) * 100}%` }} />
