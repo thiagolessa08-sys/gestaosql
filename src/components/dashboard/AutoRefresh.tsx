@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 interface Props {
@@ -9,28 +9,28 @@ interface Props {
 
 export function AutoRefresh({ intervalSeconds = 60 }: Props) {
   const router = useRouter()
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [countdown, setCountdown] = useState(intervalSeconds)
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const countdownRef = useRef(intervalSeconds)
 
-  const refresh = useCallback(() => {
-    router.refresh()
-    setLastUpdated(new Date())
-    setCountdown(intervalSeconds)
-  }, [router, intervalSeconds])
-
-  // Countdown tick every second
   useEffect(() => {
+    countdownRef.current = intervalSeconds
+    setCountdown(intervalSeconds)
+
     const tick = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          refresh()
-          return intervalSeconds
-        }
-        return prev - 1
-      })
+      countdownRef.current -= 1
+      setCountdown(countdownRef.current)
+
+      if (countdownRef.current <= 0) {
+        countdownRef.current = intervalSeconds
+        setCountdown(intervalSeconds)
+        setLastUpdated(new Date())
+        router.refresh()
+      }
     }, 1000)
+
     return () => clearInterval(tick)
-  }, [refresh, intervalSeconds])
+  }, [router, intervalSeconds])
 
   const fmt = lastUpdated.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
@@ -40,9 +40,7 @@ export function AutoRefresh({ intervalSeconds = 60 }: Props) {
 
   return (
     <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-      <span
-        className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"
-      />
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
       <span>Atualiza em {countdown}s · última vez {fmt}</span>
     </div>
   )
