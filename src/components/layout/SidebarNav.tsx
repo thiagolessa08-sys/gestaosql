@@ -49,7 +49,7 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
             href={href}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               active
-                ? "bg-white text-[#1d4ed8]"
+                ? "bg-white text-[#6366f1]"
                 : "text-white/75 hover:bg-white/15 hover:text-white"
             }`}
           >
