@@ -24,11 +24,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col shrink-0 shadow-sm">
+      <aside className="w-64 flex flex-col shrink-0 shadow-sm bg-[#1d4ed8] text-white">
         {/* Logo */}
-        <div className="px-2 py-4 flex items-center justify-center">
+        <div className="px-4 py-4 flex items-center justify-center border-b border-white/25">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png?v=3" alt="SQLTech" className="h-20 w-full object-contain dark:invert" />
+          <img src="/logo-branco.png?v=1" alt="SQLTech" className="h-20 w-full object-contain" />
         </div>
 
         {/* Main nav */}
@@ -40,7 +40,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         )}
 
         {/* User section */}
-        <div className="border-t p-4 mt-auto">
+        <div className="border-t border-white/20 p-4 mt-auto">
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold"
@@ -49,8 +49,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate leading-tight">{session.user.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+              <p className="text-sm font-medium truncate leading-tight text-white">{session.user.name}</p>
+              <p className="text-xs text-white/60 truncate">{session.user.email}</p>
             </div>
             <NotificationBell initialCount={unreadCount} />
           </div>
@@ -64,7 +64,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-muted-foreground hover:text-foreground"
+              className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
               type="submit"
             >
               Sair

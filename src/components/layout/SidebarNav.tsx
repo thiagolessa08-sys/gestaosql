@@ -49,8 +49,8 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
             href={href}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               active
-                ? "bg-primary text-primary-foreground"
-                : "text-foreground/60 hover:bg-accent hover:text-foreground"
+                ? "bg-white text-[#1d4ed8]"
+                : "text-white/75 hover:bg-white/15 hover:text-white"
             }`}
           >
             <Icon className="w-4 h-4 shrink-0" />

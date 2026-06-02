@@ -13,7 +13,7 @@ export function SidebarRecentProjects({ projects }: Props) {
 
   return (
     <div className="px-3 pb-2">
-      <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/50">
         Projetos recentes
       </p>
       <div className="space-y-0.5">
@@ -26,8 +26,8 @@ export function SidebarRecentProjects({ projects }: Props) {
               href={`/projetos/${project.slug}`}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                 active
-                  ? "bg-accent text-foreground font-medium"
-                  : "text-foreground/60 hover:bg-accent hover:text-foreground"
+                  ? "bg-white/20 text-white font-medium"
+                  : "text-white/75 hover:bg-white/15 hover:text-white"
               }`}
             >
               <span
