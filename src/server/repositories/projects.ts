@@ -80,6 +80,40 @@ export async function archiveProject(id: string) {
   })
 }
 
+export async function findArchivedProjects() {
+  return db.project.findMany({
+    where: { archivedAt: { not: null } },
+    include: PROJECT_LIST_INCLUDE,
+    orderBy: { archivedAt: "desc" },
+  })
+}
+
+export async function unarchiveProject(id: string) {
+  return db.project.update({
+    where: { id },
+    data: { archivedAt: null },
+  })
+}
+
+export async function deleteProjectCascade(id: string) {
+  return db.$transaction([
+    db.cardTag.deleteMany({ where: { card: { projectId: id } } }),
+    db.comment.deleteMany({ where: { card: { projectId: id } } }),
+    db.checklistItem.deleteMany({ where: { card: { projectId: id } } }),
+    db.attachment.deleteMany({ where: { card: { projectId: id } } }),
+    db.cardStatusTransition.deleteMany({ where: { card: { projectId: id } } }),
+    db.sprintCardSnapshot.deleteMany({ where: { sprint: { projectId: id } } }),
+    db.mainActivity.deleteMany({ where: { sprint: { projectId: id } } }),
+    db.card.deleteMany({ where: { projectId: id } }),
+    db.sprint.deleteMany({ where: { projectId: id } }),
+    db.tag.deleteMany({ where: { projectId: id } }),
+    db.projectInvitation.deleteMany({ where: { projectId: id } }),
+    db.projectMember.deleteMany({ where: { projectId: id } }),
+    db.auditLog.deleteMany({ where: { projectId: id } }),
+    db.project.delete({ where: { id } }),
+  ])
+}
+
 export async function getProjectCardStats(projectId: string) {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const [total, done, thisWeek] = await Promise.all([

@@ -3,7 +3,7 @@
 import { auth } from "@/server/auth/config"
 import { revalidatePath } from "next/cache"
 import { createProjectSchema, updateProjectSchema } from "@/lib/schemas/projects"
-import { createProject, updateProject, archiveProject } from "@/server/services/projects"
+import { createProject, updateProject, archiveProject, unarchiveProject, deleteProjectCascade } from "@/server/services/projects"
 import { requirePermission } from "@/server/permissions"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
@@ -58,6 +58,30 @@ export async function archiveProjectAction(projectId: string): Promise<ActionRes
   }
 
   await archiveProject(projectId)
+  revalidatePath("/projetos")
+  return { success: true }
+}
+
+export async function unarchiveProjectAction(projectId: string): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+  if (!session.user.isSystemAdmin) return { success: false, error: "Apenas administradores podem restaurar projetos." }
+
+  await unarchiveProject(projectId)
+  revalidatePath("/projetos")
+  return { success: true }
+}
+
+export async function deleteProjectAction(projectId: string): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+  if (!session.user.isSystemAdmin) return { success: false, error: "Apenas administradores podem apagar projetos." }
+
+  try {
+    await deleteProjectCascade(projectId)
+  } catch {
+    return { success: false, error: "Erro ao apagar o projeto." }
+  }
   revalidatePath("/projetos")
   return { success: true }
 }

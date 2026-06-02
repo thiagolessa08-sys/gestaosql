@@ -5,6 +5,9 @@ import {
   createProject as createProjectRecord,
   updateProject as updateProjectRecord,
   archiveProject as archiveProjectRecord,
+  findArchivedProjects as findArchivedProjectsRecord,
+  unarchiveProject as unarchiveProjectRecord,
+  deleteProjectCascade as deleteProjectCascadeRecord,
 } from "@/server/repositories/projects"
 import { createMember } from "@/server/repositories/members"
 import { generateSlug } from "@/lib/utils"
@@ -57,6 +60,18 @@ export async function updateProject(
 
 export async function archiveProject(id: string) {
   return archiveProjectRecord(id)
+}
+
+export async function getArchivedProjects() {
+  return findArchivedProjectsRecord()
+}
+
+export async function unarchiveProject(id: string) {
+  return unarchiveProjectRecord(id)
+}
+
+export async function deleteProjectCascade(id: string) {
+  return deleteProjectCascadeRecord(id)
 }
 
 export async function getProjectsForUser(userId: string, isSystemAdmin = false) {

@@ -2,18 +2,20 @@ import Link from "next/link"
 import { Users, Zap, LayoutList, MoreHorizontal } from "lucide-react"
 import { getProjectColor, getUserAvatarColor, getInitials } from "@/lib/project-colors"
 
+export interface ProjectListItem {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  archivedAt: Date | null
+  _count: { members: number; sprints: number; cards: number }
+  members: Array<{ user: { name: string } }>
+  sprints: Array<{ name: string }>   // active sprints only
+  cards: Array<{ id: string }>       // done cards only
+}
+
 interface ProjectCardProps {
-  project: {
-    id: string
-    name: string
-    slug: string
-    description: string | null
-    archivedAt: Date | null
-    _count: { members: number; sprints: number; cards: number }
-    members: Array<{ user: { name: string } }>
-    sprints: Array<{ name: string }>   // active sprints only
-    cards: Array<{ id: string }>       // done cards only
-  }
+  project: ProjectListItem
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
