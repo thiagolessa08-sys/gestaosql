@@ -16,7 +16,7 @@ export function ComercialColumn({ etapa, oportunidades, onCardClick }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: etapa.enum })
 
   return (
-    <div className="flex flex-col w-[220px] shrink-0">
+    <div className="flex flex-col flex-1 min-w-0">
       <div className="flex items-center justify-between mb-2 px-1">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide truncate">
           {etapa.label}

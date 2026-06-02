@@ -84,7 +84,7 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
       </div>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 p-4 overflow-x-auto flex-1 items-start">
+        <div className="flex gap-3 p-4 flex-1 items-start">
           {COLUNAS_COMERCIAL.map((col) => (
             <ComercialColumn
               key={col.enum}
