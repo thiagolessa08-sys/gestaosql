@@ -6,6 +6,7 @@ import {
   adminCreateUserAction,
   adminDeleteUserAction,
   adminUpdateUserTipoAction,
+  adminUpdateUserNameAction,
 } from "@/server/actions/users"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Trash2, UserPlus } from "lucide-react"
+import { Trash2, UserPlus, Pencil, Check, X } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
 
 type TipoUsuario = "ADMIN" | "COMERCIAL" | "PROJETOS"
@@ -50,6 +51,8 @@ export function UserManagement({ users, currentUserId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [tipo, setTipo] = useState<TipoUsuario>("PROJETOS")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -80,6 +83,21 @@ export function UserManagement({ users, currentUserId }: Props) {
       alert(result.error)
       return
     }
+    router.refresh()
+  }
+
+  function startEdit(userId: string, currentName: string) {
+    setEditingId(userId)
+    setEditName(currentName)
+  }
+
+  async function handleSaveName(userId: string) {
+    const result = await adminUpdateUserNameAction(userId, editName)
+    if (!result.success) {
+      alert(result.error)
+      return
+    }
+    setEditingId(null)
     router.refresh()
   }
 
@@ -167,14 +185,43 @@ export function UserManagement({ users, currentUserId }: Props) {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium truncate">{user.name}</p>
-                      {user.mustChangePassword && (
-                        <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
-                          Troca senha pendente
-                        </Badge>
-                      )}
-                    </div>
+                    {editingId === user.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveName(user.id)
+                            if (e.key === "Escape") setEditingId(null)
+                          }}
+                          autoFocus
+                          className="h-7 text-sm"
+                        />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600" onClick={() => handleSaveName(user.id)}>
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium truncate">{user.name}</p>
+                        <button
+                          type="button"
+                          onClick={() => startEdit(user.id, user.name)}
+                          className="text-muted-foreground hover:text-foreground shrink-0"
+                          title="Editar nome"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        {user.mustChangePassword && (
+                          <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                            Troca senha pendente
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </div>

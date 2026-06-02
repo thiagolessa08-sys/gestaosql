@@ -7,7 +7,7 @@ import { NotificationType } from "@prisma/client"
 import { z } from "zod"
 import { changePasswordSchema } from "@/lib/schemas/auth"
 import { updateProfile, changePassword } from "@/server/services/users"
-import { createUser, findUserByEmail, markUserDeleted, updateUserTipo } from "@/server/repositories/users"
+import { createUser, findUserByEmail, markUserDeleted, updateUserTipo, updateUser } from "@/server/repositories/users"
 import type { PerfilAcesso } from "@prisma/client"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
@@ -105,6 +105,23 @@ export async function adminCreateUserAction(formData: FormData): Promise<ActionR
     mustChangePassword: true,
   })
 
+  revalidatePath("/configuracoes/usuarios")
+  return { success: true }
+}
+
+export async function adminUpdateUserNameAction(
+  userId: string,
+  name: string
+): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+  if (!session.user.isSystemAdmin) return { success: false, error: "Apenas administradores podem editar usuários." }
+
+  const trimmed = name.trim()
+  if (!trimmed) return { success: false, error: "Nome é obrigatório." }
+  if (trimmed.length > 100) return { success: false, error: "Nome muito longo." }
+
+  await updateUser(userId, { name: trimmed })
   revalidatePath("/configuracoes/usuarios")
   return { success: true }
 }
