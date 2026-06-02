@@ -7,9 +7,18 @@ import { NotificationType } from "@prisma/client"
 import { z } from "zod"
 import { changePasswordSchema } from "@/lib/schemas/auth"
 import { updateProfile, changePassword } from "@/server/services/users"
-import { createUser, findUserByEmail, markUserDeleted } from "@/server/repositories/users"
+import { createUser, findUserByEmail, markUserDeleted, updateUserTipo } from "@/server/repositories/users"
+import type { PerfilAcesso } from "@prisma/client"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
+
+type TipoUsuario = "ADMIN" | "COMERCIAL" | "PROJETOS"
+
+function mapTipo(tipo: TipoUsuario): { isSystemAdmin: boolean; perfil: PerfilAcesso } {
+  if (tipo === "ADMIN") return { isSystemAdmin: true, perfil: "PROJETOS" }
+  if (tipo === "COMERCIAL") return { isSystemAdmin: false, perfil: "COMERCIAL" }
+  return { isSystemAdmin: false, perfil: "PROJETOS" }
+}
 
 export async function updateProfileAction(formData: FormData): Promise<ActionResult> {
   const session = await auth()
@@ -64,7 +73,7 @@ const adminCreateUserSchema = z.object({
   name: z.string().min(1, "Nome obrigatório").max(100),
   email: z.string().email("Email inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
-  isSystemAdmin: z.boolean().default(false),
+  tipo: z.enum(["ADMIN", "COMERCIAL", "PROJETOS"]).default("PROJETOS"),
 })
 
 export async function adminCreateUserAction(formData: FormData): Promise<ActionResult> {
@@ -76,7 +85,7 @@ export async function adminCreateUserAction(formData: FormData): Promise<ActionR
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
-    isSystemAdmin: formData.get("isSystemAdmin") === "true",
+    tipo: formData.get("tipo"),
   }
 
   const parsed = adminCreateUserSchema.safeParse(raw)
@@ -85,13 +94,32 @@ export async function adminCreateUserAction(formData: FormData): Promise<ActionR
   const existing = await findUserByEmail(parsed.data.email)
   if (existing) return { success: false, error: "Já existe um usuário com este email." }
 
+  const { isSystemAdmin, perfil } = mapTipo(parsed.data.tipo)
+
   await createUser({
     name: parsed.data.name,
     email: parsed.data.email,
     password: parsed.data.password,
-    isSystemAdmin: parsed.data.isSystemAdmin,
+    isSystemAdmin,
+    perfil,
     mustChangePassword: true,
   })
+
+  revalidatePath("/configuracoes/usuarios")
+  return { success: true }
+}
+
+export async function adminUpdateUserTipoAction(
+  userId: string,
+  tipo: TipoUsuario
+): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+  if (!session.user.isSystemAdmin) return { success: false, error: "Apenas administradores podem alterar usuários." }
+  if (userId === session.user.id) return { success: false, error: "Você não pode alterar seu próprio tipo." }
+
+  const { isSystemAdmin, perfil } = mapTipo(tipo)
+  await updateUserTipo(userId, { isSystemAdmin, perfil })
 
   revalidatePath("/configuracoes/usuarios")
   return { success: true }

@@ -3,20 +3,45 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutGrid, Settings, BarChart3, Briefcase } from "lucide-react"
+import type { PerfilAcesso } from "@prisma/client"
 
-const NAV_LINKS = [
-  { href: "/projetos", activePath: "/projetos", label: "Projetos", icon: LayoutGrid },
-  { href: "/comercial", activePath: "/comercial", label: "Comercial", icon: Briefcase },
-  { href: "/painel", activePath: "/painel", label: "Painel", icon: BarChart3 },
-  { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings },
+type Area = "projetos" | "comercial" | "painel" | "config"
+
+const NAV_LINKS: {
+  href: string
+  activePath: string
+  label: string
+  icon: typeof LayoutGrid
+  area: Area
+}[] = [
+  { href: "/projetos", activePath: "/projetos", label: "Projetos", icon: LayoutGrid, area: "projetos" },
+  { href: "/comercial", activePath: "/comercial", label: "Comercial", icon: Briefcase, area: "comercial" },
+  { href: "/painel", activePath: "/painel", label: "Painel", icon: BarChart3, area: "painel" },
+  { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings, area: "config" },
 ]
 
-export function SidebarNav() {
+interface Props {
+  isSystemAdmin: boolean
+  perfil: PerfilAcesso
+}
+
+export function SidebarNav({ isSystemAdmin, perfil }: Props) {
   const pathname = usePathname()
+
+  function podeVer(area: Area): boolean {
+    if (area === "config") return true
+    if (isSystemAdmin) return true
+    if (area === "painel") return false // só admin
+    if (area === "comercial") return perfil === "COMERCIAL"
+    if (area === "projetos") return perfil === "PROJETOS"
+    return false
+  }
+
+  const links = NAV_LINKS.filter((l) => podeVer(l.area))
 
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">
-      {NAV_LINKS.map(({ href, activePath, label, icon: Icon }) => {
+      {links.map(({ href, activePath, label, icon: Icon }) => {
         const active = pathname.startsWith(activePath)
         return (
           <Link

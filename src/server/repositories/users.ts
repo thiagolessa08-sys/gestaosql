@@ -57,6 +57,7 @@ export async function createUser(data: {
   email: string
   password: string
   isSystemAdmin?: boolean
+  perfil?: import("@prisma/client").PerfilAcesso
   mustChangePassword?: boolean
 }) {
   const passwordHash = await hash(data.password, 12)
@@ -66,6 +67,7 @@ export async function createUser(data: {
       email: data.email,
       passwordHash,
       isSystemAdmin: data.isSystemAdmin ?? false,
+      perfil: data.perfil ?? "PROJETOS",
       mustChangePassword: data.mustChangePassword ?? false,
     },
     select: {
@@ -73,9 +75,17 @@ export async function createUser(data: {
       name: true,
       email: true,
       isSystemAdmin: true,
+      perfil: true,
       mustChangePassword: true,
     },
   })
+}
+
+export async function updateUserTipo(
+  id: string,
+  data: { isSystemAdmin: boolean; perfil: import("@prisma/client").PerfilAcesso }
+) {
+  return db.user.update({ where: { id }, data })
 }
 
 export async function updateUserPassword(userId: string, newPassword: string) {
@@ -97,6 +107,7 @@ export async function findAllUsers() {
       name: true,
       email: true,
       isSystemAdmin: true,
+      perfil: true,
       mustChangePassword: true,
       createdAt: true,
     },

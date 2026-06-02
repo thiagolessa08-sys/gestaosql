@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Main nav */}
-        <SidebarNav />
+        <SidebarNav isSystemAdmin={session.user.isSystemAdmin} perfil={session.user.perfil} />
 
         {/* Projetos recentes */}
         {recentProjects.length > 0 && (

@@ -26,6 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: true,
             passwordHash: true,
             isSystemAdmin: true,
+            perfil: true,
             mustChangePassword: true,
           },
         })
@@ -39,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           isSystemAdmin: user.isSystemAdmin,
+          perfil: user.perfil,
           mustChangePassword: user.mustChangePassword,
         }
       },
@@ -49,6 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id!
         token.isSystemAdmin = (user as { isSystemAdmin: boolean }).isSystemAdmin
+        token.perfil = (user as { perfil: import("@prisma/client").PerfilAcesso }).perfil
         token.mustChangePassword = (user as { mustChangePassword: boolean }).mustChangePassword
       }
       // Permite atualizar mustChangePassword no JWT via useSession().update()
@@ -60,6 +63,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, token }) {
       session.user.id = token.id as string
       session.user.isSystemAdmin = token.isSystemAdmin as boolean
+      session.user.perfil = token.perfil as import("@prisma/client").PerfilAcesso
       session.user.mustChangePassword = token.mustChangePassword as boolean
       return session
     },

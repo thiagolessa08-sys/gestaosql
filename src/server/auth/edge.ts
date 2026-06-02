@@ -16,6 +16,7 @@ const edgeAuthConfig: NextAuthConfig = {
       if (user) {
         token.id = user.id!
         token.isSystemAdmin = (user as { isSystemAdmin: boolean }).isSystemAdmin
+        token.perfil = (user as { perfil: import("@prisma/client").PerfilAcesso }).perfil
         token.mustChangePassword = (user as { mustChangePassword: boolean }).mustChangePassword
       }
       if (trigger === "update" && session?.mustChangePassword !== undefined) {
@@ -26,6 +27,7 @@ const edgeAuthConfig: NextAuthConfig = {
     session({ session, token }) {
       session.user.id = token.id as string
       session.user.isSystemAdmin = token.isSystemAdmin as boolean
+      session.user.perfil = token.perfil as import("@prisma/client").PerfilAcesso
       session.user.mustChangePassword = token.mustChangePassword as boolean
       return session
     },

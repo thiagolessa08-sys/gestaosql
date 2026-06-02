@@ -30,9 +30,33 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/trocar-senha", req.url))
   }
 
-  // Logado na raiz → redireciona para projetos
-  if (isLoggedIn && pathname === "/") {
-    return NextResponse.redirect(new URL("/projetos", req.url))
+  // Controle de acesso por perfil (admin vê tudo)
+  if (isLoggedIn) {
+    const user = req.auth!.user
+    const isAdmin = user.isSystemAdmin
+    const isComercial = user.perfil === "COMERCIAL"
+    // Área padrão do usuário
+    const areaPadrao = !isAdmin && isComercial ? "/comercial" : "/projetos"
+
+    // Raiz → área do usuário
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL(areaPadrao, req.url))
+    }
+
+    if (!isAdmin) {
+      const querComercial = pathname.startsWith("/comercial")
+      const querProjetos = pathname.startsWith("/projetos")
+      const querPainel = pathname.startsWith("/painel")
+
+      // Comercial só acessa /comercial
+      if (isComercial && (querProjetos || querPainel)) {
+        return NextResponse.redirect(new URL("/comercial", req.url))
+      }
+      // Projetos não acessa /comercial nem /painel
+      if (!isComercial && (querComercial || querPainel)) {
+        return NextResponse.redirect(new URL("/projetos", req.url))
+      }
+    }
   }
 
   return NextResponse.next()
