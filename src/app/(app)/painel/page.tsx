@@ -68,7 +68,7 @@ export default async function PainelPage() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="SQLTech" className="h-14 w-auto object-contain dark:invert" />
+            <img src="/logo.png?v=2" alt="SQLTech" className="h-14 w-auto object-contain dark:invert" />
             <div>
               <p className="text-xs text-muted-foreground">Painel de operações · tempo real</p>
             </div>
