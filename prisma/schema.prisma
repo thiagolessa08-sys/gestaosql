@@ -63,6 +63,16 @@ enum EmailStatus {
   FAILED
 }
 
+enum EtapaComercial {
+  SUSPECT
+  LEAD
+  PROSPECT_C
+  PROSPECT_B
+  PROSPECT_A
+  CONCLUIDO
+  PERDIDO
+}
+
 model User {
   id                 String    @id @default(uuid())
   name               String
@@ -88,7 +98,9 @@ model User {
   emailLogs             EmailLog[]
   notificationPrefs     UserNotificationPreference[]
   passwordResetTokens   PasswordResetToken[]
-  cardStatusTransitions CardStatusTransition[]
+  cardStatusTransitions    CardStatusTransition[]
+  oportunidadesCriadas     Oportunidade[]         @relation("OportunidadeCriador")
+  oportunidadesResponsavel Oportunidade[]         @relation("OportunidadeResponsavel")
 
   @@map("users")
 }
@@ -388,4 +400,23 @@ model MainActivity {
   cards  Card[]
 
   @@map("main_activities")
+}
+
+model Oportunidade {
+  id              String         @id @default(cuid())
+  cliente         String
+  produto         String?
+  origemLead      String?        @map("origem_lead")
+  descricao       String?
+  valor           Decimal?       @db.Decimal(14, 2)
+  prazoFechamento DateTime?      @map("prazo_fechamento")
+  etapa           EtapaComercial @default(SUSPECT)
+  responsavelId   String?        @map("responsavel_id")
+  responsavel     User?          @relation("OportunidadeResponsavel", fields: [responsavelId], references: [id])
+  createdById     String         @map("created_by_id")
+  createdBy       User           @relation("OportunidadeCriador", fields: [createdById], references: [id])
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@map("oportunidades")
 }
