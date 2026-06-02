@@ -71,3 +71,41 @@ export async function deleteOportunidadeAction(
     return { success: false, error: "Erro ao excluir oportunidade." }
   }
 }
+
+export async function addSubitemAction(
+  oportunidadeId: string,
+  texto: string
+): Promise<ActionResult> {
+  try {
+    await getRequiredSession()
+    const t = texto.trim()
+    if (!t) return { success: false, error: "Texto é obrigatório." }
+    await service.addSubitem(oportunidadeId, t)
+    revalidatePath("/comercial")
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: "Erro ao adicionar atividade." }
+  }
+}
+
+export async function toggleSubitemAction(id: string): Promise<ActionResult> {
+  try {
+    await getRequiredSession()
+    await service.toggleSubitem(id)
+    revalidatePath("/comercial")
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: "Erro ao atualizar atividade." }
+  }
+}
+
+export async function deleteSubitemAction(id: string): Promise<ActionResult> {
+  try {
+    await getRequiredSession()
+    await service.deleteSubitem(id)
+    revalidatePath("/comercial")
+    return { success: true, data: undefined }
+  } catch {
+    return { success: false, error: "Erro ao excluir atividade." }
+  }
+}

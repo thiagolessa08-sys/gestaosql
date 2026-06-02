@@ -432,6 +432,7 @@ model Oportunidade {
   prazoFechamento DateTime?      @map("prazo_fechamento")
   etapa           EtapaComercial @default(SUSPECT)
   atividade       AtividadeComercial?
+  subitens        OportunidadeSubitem[]
   responsavelId   String?        @map("responsavel_id")
   responsavel     User?          @relation("OportunidadeResponsavel", fields: [responsavelId], references: [id])
   createdById     String         @map("created_by_id")
@@ -440,4 +441,16 @@ model Oportunidade {
   updatedAt       DateTime       @updatedAt @map("updated_at")
 
   @@map("oportunidades")
+}
+
+model OportunidadeSubitem {
+  id             String       @id @default(cuid())
+  oportunidadeId String       @map("oportunidade_id")
+  oportunidade   Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  texto          String
+  feito          Boolean      @default(false)
+  criadoEm       DateTime     @default(now()) @map("criado_em")
+  concluidoEm    DateTime?    @map("concluido_em")
+
+  @@map("oportunidade_subitens")
 }

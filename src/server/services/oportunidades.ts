@@ -43,3 +43,15 @@ export async function deleteOportunidade(id: string) {
   if (!existing) throw new Error("Oportunidade não encontrada")
   return repo.deleteOportunidade(id)
 }
+
+export async function addSubitem(oportunidadeId: string, texto: string) {
+  return repo.addSubitem(oportunidadeId, texto)
+}
+
+export async function toggleSubitem(id: string) {
+  return repo.toggleSubitem(id)
+}
+
+export async function deleteSubitem(id: string) {
+  return repo.deleteSubitem(id)
+}

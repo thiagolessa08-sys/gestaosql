@@ -19,6 +19,7 @@ import {
   deleteOportunidadeAction,
 } from "@/server/actions/oportunidades"
 import type { OportunidadeComResponsavel } from "@/components/comercial/ComercialKanban"
+import { SubitensSection } from "@/components/comercial/SubitensSection"
 
 interface UserSimples { id: string; name: string; email: string }
 
@@ -173,6 +174,16 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, ope
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="op-descricao">Descrição / Observações</Label>
             <Textarea id="op-descricao" rows={3} value={form.descricao} onChange={(e) => set("descricao", e.target.value)} />
+          </div>
+
+          <div className="col-span-2 border-t pt-3">
+            {mode === "edit" && oportunidade ? (
+              <SubitensSection oportunidadeId={oportunidade.id} subitens={oportunidade.subitens} />
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Salve a oportunidade primeiro para adicionar atividades.
+              </p>
+            )}
           </div>
         </div>
 

@@ -6,6 +6,9 @@ const includeResponsavel = {
   responsavel: {
     select: { id: true, name: true, email: true },
   },
+  subitens: {
+    orderBy: { criadoEm: "asc" },
+  },
 } as const
 
 export async function findAllOportunidades() {
@@ -48,4 +51,22 @@ export async function moveOportunidade(
 
 export async function deleteOportunidade(id: string) {
   return db.oportunidade.delete({ where: { id } })
+}
+
+export async function addSubitem(oportunidadeId: string, texto: string) {
+  return db.oportunidadeSubitem.create({ data: { oportunidadeId, texto } })
+}
+
+export async function toggleSubitem(id: string) {
+  const item = await db.oportunidadeSubitem.findUnique({ where: { id } })
+  if (!item) throw new Error("Subitem não encontrado")
+  const feito = !item.feito
+  return db.oportunidadeSubitem.update({
+    where: { id },
+    data: { feito, concluidoEm: feito ? new Date() : null },
+  })
+}
+
+export async function deleteSubitem(id: string) {
+  return db.oportunidadeSubitem.delete({ where: { id } })
 }

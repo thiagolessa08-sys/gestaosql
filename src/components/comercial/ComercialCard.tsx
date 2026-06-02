@@ -3,6 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { EtapaComercial, AtividadeComercial } from "@prisma/client"
+import { CheckSquare } from "lucide-react"
 import { getAtividadesDaEtapa, getAtividadeConfig } from "@/lib/comercial"
 import type { OportunidadeComResponsavel } from "@/components/comercial/ComercialKanban"
 
@@ -44,6 +45,9 @@ export function ComercialCard({ oportunidade, onClick, onAtividadeChange }: Prop
 
   const inicial = oportunidade.responsavel?.name.charAt(0).toUpperCase()
   const avatarColor = AVATAR_COLORS[oportunidade.cliente.charCodeAt(0) % AVATAR_COLORS.length]
+
+  const totalSubitens = oportunidade.subitens.length
+  const feitosSubitens = oportunidade.subitens.filter((s) => s.feito).length
 
   const atividadesDaColuna = getAtividadesDaEtapa(oportunidade.etapa)
   const isConcluido = oportunidade.etapa === EtapaComercial.CONCLUIDO
@@ -98,6 +102,12 @@ export function ComercialCard({ oportunidade, onClick, onAtividadeChange }: Prop
           )}
           {prazoFormatado && (
             <span className="text-xs text-muted-foreground">{prazoFormatado}</span>
+          )}
+          {totalSubitens > 0 && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <CheckSquare className="w-3 h-3" />
+              {feitosSubitens}/{totalSubitens}
+            </span>
           )}
         </div>
 

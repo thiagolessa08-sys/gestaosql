@@ -5,7 +5,7 @@ import {
   DndContext, DragEndEvent, DragOverEvent, DragStartEvent,
   PointerSensor, useSensor, useSensors, DragOverlay,
 } from "@dnd-kit/core"
-import { EtapaComercial, AtividadeComercial, type Oportunidade, type User } from "@prisma/client"
+import { EtapaComercial, AtividadeComercial, type Oportunidade, type OportunidadeSubitem, type User } from "@prisma/client"
 import { COLUNAS_COMERCIAL, getPrimeiraAtividade } from "@/lib/comercial"
 import { ComercialColumn } from "@/components/comercial/ComercialColumn"
 import { OportunidadeModal } from "@/components/comercial/OportunidadeModal"
@@ -15,6 +15,7 @@ import { moveOportunidadeAction } from "@/server/actions/oportunidades"
 
 export type OportunidadeComResponsavel = Oportunidade & {
   responsavel: Pick<User, "id" | "name" | "email"> | null
+  subitens: OportunidadeSubitem[]
 }
 
 type UserSimples = Pick<User, "id" | "name" | "email">
