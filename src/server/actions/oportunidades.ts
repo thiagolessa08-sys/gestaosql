@@ -75,14 +75,23 @@ export async function deleteOportunidadeAction(
 export async function addSubitemAction(
   oportunidadeId: string,
   texto: string
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string; texto: string; feito: boolean; criadoEm: Date; concluidoEm: Date | null }>> {
   try {
     await getRequiredSession()
     const t = texto.trim()
     if (!t) return { success: false, error: "Texto é obrigatório." }
-    await service.addSubitem(oportunidadeId, t)
+    const item = await service.addSubitem(oportunidadeId, t)
     revalidatePath("/comercial")
-    return { success: true, data: undefined }
+    return {
+      success: true,
+      data: {
+        id: item.id,
+        texto: item.texto,
+        feito: item.feito,
+        criadoEm: item.criadoEm,
+        concluidoEm: item.concluidoEm,
+      },
+    }
   } catch {
     return { success: false, error: "Erro ao adicionar atividade." }
   }

@@ -18,11 +18,16 @@ interface Props {
 }
 
 function fmt(date: Date | string) {
-  return new Date(date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+  return new Date(date).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  })
 }
 
-export function SubitensSection({ oportunidadeId, subitens }: Props) {
+export function SubitensSection({ oportunidadeId, subitens: initial }: Props) {
   const router = useRouter()
+  const [subitens, setSubitens] = useState<OportunidadeSubitem[]>(initial)
   const [novo, setNovo] = useState("")
   const [isPending, startTransition] = useTransition()
 
@@ -31,16 +36,30 @@ export function SubitensSection({ oportunidadeId, subitens }: Props) {
   function handleAdd() {
     const t = novo.trim()
     if (!t) return
+    setNovo("")
     startTransition(async () => {
       const r = await addSubitemAction(oportunidadeId, t)
       if (r.success) {
-        setNovo("")
+        setSubitens((prev) => [
+          ...prev,
+          { ...r.data, oportunidadeId } as OportunidadeSubitem,
+        ])
         router.refresh()
+      } else {
+        setNovo(t)
       }
     })
   }
 
   function handleToggle(id: string) {
+    // optimistic
+    setSubitens((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? { ...s, feito: !s.feito, concluidoEm: !s.feito ? new Date() : null }
+          : s
+      )
+    )
     startTransition(async () => {
       const r = await toggleSubitemAction(id)
       if (r.success) router.refresh()
@@ -48,6 +67,7 @@ export function SubitensSection({ oportunidadeId, subitens }: Props) {
   }
 
   function handleDelete(id: string) {
+    setSubitens((prev) => prev.filter((s) => s.id !== id))
     startTransition(async () => {
       const r = await deleteSubitemAction(id)
       if (r.success) router.refresh()
@@ -70,7 +90,6 @@ export function SubitensSection({ oportunidadeId, subitens }: Props) {
               type="checkbox"
               checked={s.feito}
               onChange={() => handleToggle(s.id)}
-              disabled={isPending}
               className="mt-0.5 cursor-pointer"
             />
             <div className="flex-1 min-w-0">
@@ -78,14 +97,13 @@ export function SubitensSection({ oportunidadeId, subitens }: Props) {
                 {s.texto}
               </span>
               <div className="text-[10px] text-muted-foreground">
-                criado {fmt(s.criadoEm)}
+                {fmt(s.criadoEm)}
                 {s.feito && s.concluidoEm && ` · concluído ${fmt(s.concluidoEm)}`}
               </div>
             </div>
             <button
               type="button"
               onClick={() => handleDelete(s.id)}
-              disabled={isPending}
               className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0"
             >
               <X className="w-3.5 h-3.5" />
@@ -100,7 +118,6 @@ export function SubitensSection({ oportunidadeId, subitens }: Props) {
           onChange={(e) => setNovo(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAdd() } }}
           placeholder="Adicionar atividade..."
-          disabled={isPending}
           className="h-8 text-sm"
         />
         <Button size="sm" variant="outline" className="h-8 px-2" onClick={handleAdd} disabled={isPending || !novo.trim()}>
