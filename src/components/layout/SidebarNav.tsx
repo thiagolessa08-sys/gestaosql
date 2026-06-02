@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutGrid, Settings, BarChart3 } from "lucide-react"
+import { LayoutGrid, Settings, BarChart3, Briefcase } from "lucide-react"
 
 const NAV_LINKS = [
   { href: "/projetos", activePath: "/projetos", label: "Projetos", icon: LayoutGrid },
+  { href: "/comercial", activePath: "/comercial", label: "Comercial", icon: Briefcase },
   { href: "/painel", activePath: "/painel", label: "Painel", icon: BarChart3 },
   { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings },
 ]
