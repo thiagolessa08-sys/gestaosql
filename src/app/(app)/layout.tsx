@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         {/* Logo */}
         <div className="px-2 py-4 flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png?v=2" alt="SQLTech" className="h-20 w-full object-contain dark:invert" />
+          <img src="/logo.png?v=3" alt="SQLTech" className="h-20 w-full object-contain dark:invert" />
         </div>
 
         {/* Main nav */}
