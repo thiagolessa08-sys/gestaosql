@@ -1,0 +1,74 @@
+<h2>Como abrir os detalhes de uma oportunidade?</h2>
+<p class="subtitle">Cliente, Produto, POV, Proposta de Valor, Mapeamento, Apresentação, Valor, Prazo, Responsáveis</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="modal" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:12px; background:#1e293b; border-radius:8px; position:relative; min-height:160px;">
+      <!-- Kanban ao fundo (escurecido) -->
+      <div style="opacity:0.3; display:flex; gap:6px;">
+        <div style="flex:1; background:#334155; border-radius:4px; height:80px;"></div>
+        <div style="flex:1; background:#334155; border-radius:4px; height:80px;"></div>
+        <div style="flex:1; background:#334155; border-radius:4px; height:80px;"></div>
+      </div>
+      <!-- Modal centralizado -->
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; background:white; border-radius:10px; padding:14px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+        <div style="font-size:11px; font-weight:700; color:#1e293b; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">Empresa Alfa Ltda</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+          <div><div style="font-size:7px; color:#94a3b8; text-transform:uppercase;">Produto</div><div style="font-size:9px; color:#1e293b;">SQLTech Analytics</div></div>
+          <div><div style="font-size:7px; color:#94a3b8; text-transform:uppercase;">Valor</div><div style="font-size:9px; font-weight:700; color:#16a34a;">R$ 120k</div></div>
+          <div><div style="font-size:7px; color:#94a3b8; text-transform:uppercase;">Prazo</div><div style="font-size:9px; color:#1e293b;">Jun/26</div></div>
+          <div><div style="font-size:7px; color:#94a3b8; text-transform:uppercase;">POV</div><div style="font-size:9px; color:#1e293b;">Demo agendada</div></div>
+        </div>
+        <div style="font-size:7px; color:#94a3b8; text-transform:uppercase; margin-bottom:3px;">Proposta de Valor</div>
+        <div style="font-size:8px; color:#475569; background:#f8fafc; padding:4px; border-radius:4px; margin-bottom:8px;">Redução de 40% no tempo de análise de dados</div>
+        <div style="display:flex; justify-content:flex-end; gap:4px;">
+          <button style="font-size:8px; padding:3px 8px; border:1px solid #e2e8f0; border-radius:4px; background:white; color:#64748b;">Fechar</button>
+          <button style="font-size:8px; padding:3px 8px; border:none; border-radius:4px; background:#3b82f6; color:white;">Salvar</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Modal centralizado</h3>
+      <p>Dialog que abre no centro da tela sobre o kanban. Igual ao CardDetailModal que já existe no projeto. Padrão familiar ao time.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="drawer" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0; background:#f1f5f9; border-radius:8px; overflow:hidden; min-height:160px; display:flex;">
+      <!-- Kanban à esquerda -->
+      <div style="flex:1; padding:12px; display:flex; gap:4px; opacity:0.5;">
+        <div style="flex:1; background:#e2e8f0; border-radius:4px;"></div>
+        <div style="flex:1; background:#e2e8f0; border-radius:4px;"></div>
+      </div>
+      <!-- Drawer à direita -->
+      <div style="width:180px; background:white; padding:14px; box-shadow:-4px 0 20px rgba(0,0,0,0.1); border-left:1px solid #e2e8f0;">
+        <div style="font-size:11px; font-weight:700; color:#1e293b; margin-bottom:8px;">Empresa Alfa Ltda</div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:7px; color:#94a3b8; text-transform:uppercase; margin-bottom:2px;">Produto</div>
+          <div style="font-size:9px; color:#1e293b; background:#f8fafc; padding:3px 6px; border-radius:4px;">SQLTech Analytics</div>
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="font-size:7px; color:#94a3b8; text-transform:uppercase; margin-bottom:2px;">Proposta de Valor</div>
+          <div style="font-size:9px; color:#475569; background:#f8fafc; padding:3px 6px; border-radius:4px;">Redução de 40%...</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:6px;">
+          <div>
+            <div style="font-size:7px; color:#94a3b8; text-transform:uppercase; margin-bottom:2px;">Valor</div>
+            <div style="font-size:9px; font-weight:700; color:#16a34a; background:#f0fdf4; padding:3px 6px; border-radius:4px;">R$ 120k</div>
+          </div>
+          <div>
+            <div style="font-size:7px; color:#94a3b8; text-transform:uppercase; margin-bottom:2px;">Prazo</div>
+            <div style="font-size:9px; color:#1e293b; background:#f8fafc; padding:3px 6px; border-radius:4px;">Jun/26</div>
+          </div>
+        </div>
+        <button style="width:100%; font-size:8px; padding:4px; border:none; border-radius:4px; background:#3b82f6; color:white;">Salvar alterações</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Painel lateral (Drawer)</h3>
+      <p>Painel desliza pela direita, mantendo o kanban visível à esquerda. Você edita sem perder o contexto do board. Mais espaço para campos longos.</p>
+    </div>
+  </div>
+
+</div>

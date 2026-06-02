@@ -5,14 +5,16 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { ComercialCard } from "@/components/comercial/ComercialCard"
 import type { EtapaConfig } from "@/lib/comercial"
 import type { OportunidadeComResponsavel } from "@/components/comercial/ComercialKanban"
+import type { AtividadeComercial, EtapaComercial } from "@prisma/client"
 
 interface Props {
   etapa: EtapaConfig
   oportunidades: OportunidadeComResponsavel[]
   onCardClick: (op: OportunidadeComResponsavel) => void
+  onAtividadeChange: (id: string, atividade: AtividadeComercial, etapa: EtapaComercial) => void
 }
 
-export function ComercialColumn({ etapa, oportunidades, onCardClick }: Props) {
+export function ComercialColumn({ etapa, oportunidades, onCardClick, onAtividadeChange }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: etapa.enum })
 
   return (
@@ -34,7 +36,12 @@ export function ComercialColumn({ etapa, oportunidades, onCardClick }: Props) {
       >
         <SortableContext items={oportunidades.map((op) => op.id)} strategy={verticalListSortingStrategy}>
           {oportunidades.map((op) => (
-            <ComercialCard key={op.id} oportunidade={op} onClick={() => onCardClick(op)} />
+            <ComercialCard
+              key={op.id}
+              oportunidade={op}
+              onClick={() => onCardClick(op)}
+              onAtividadeChange={onAtividadeChange}
+            />
           ))}
         </SortableContext>
       </div>

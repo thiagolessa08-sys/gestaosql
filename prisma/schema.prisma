@@ -73,6 +73,26 @@ enum EtapaComercial {
   PERDIDO
 }
 
+enum AtividadeComercial {
+  MAPEAMENTO
+  APRESENTACAO
+  DESPERTOU_INTERESSE
+  ABORDAGEM
+  DOR_ADMITIDA
+  BUDGET_IDENTIFICADO
+  DIAGRAMA_PODER
+  LEVANTAMENTO_AMBIENTE
+  TR_ETP
+  AVALIACAO_CONCORRENCIA
+  PROPOSTA_EMITIDA
+  SHORT_LIST
+  DECISAO_DEFINIDA
+  LICITACAO
+  TERMOS_ACEITE
+  NEGOCIACAO_CONTRATO
+  ASSINATURA_CONTRATO
+}
+
 model User {
   id                 String    @id @default(uuid())
   name               String
@@ -411,6 +431,7 @@ model Oportunidade {
   valor           Decimal?       @db.Decimal(14, 2)
   prazoFechamento DateTime?      @map("prazo_fechamento")
   etapa           EtapaComercial @default(SUSPECT)
+  atividade       AtividadeComercial?
   responsavelId   String?        @map("responsavel_id")
   responsavel     User?          @relation("OportunidadeResponsavel", fields: [responsavelId], references: [id])
   createdById     String         @map("created_by_id")

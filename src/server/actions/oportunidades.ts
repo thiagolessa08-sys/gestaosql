@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { getRequiredSession } from "@/server/auth/helpers"
 import * as service from "@/server/services/oportunidades"
 import { oportunidadeSchema } from "@/lib/schemas/oportunidades"
-import { EtapaComercial } from "@prisma/client"
+import { EtapaComercial, AtividadeComercial } from "@prisma/client"
 
 type ActionResult<T = void> =
   | { success: true; data: T }
@@ -45,13 +45,13 @@ export async function updateOportunidadeAction(
   }
 }
 
-export async function moveOportunidadeEtapaAction(
+export async function moveOportunidadeAction(
   id: string,
-  etapa: EtapaComercial
+  payload: { atividade: AtividadeComercial } | { etapa: EtapaComercial }
 ): Promise<ActionResult> {
   try {
     await getRequiredSession()
-    await service.moveOportunidadeEtapa(id, etapa)
+    await service.moveOportunidade(id, payload)
     revalidatePath("/comercial")
     return { success: true, data: undefined }
   } catch {

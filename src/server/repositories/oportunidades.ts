@@ -1,6 +1,6 @@
 import { db } from "@/server/db"
 import type { OportunidadeInput } from "@/lib/schemas/oportunidades"
-import type { EtapaComercial } from "@prisma/client"
+import type { EtapaComercial, AtividadeComercial } from "@prisma/client"
 
 const includeResponsavel = {
   responsavel: {
@@ -39,8 +39,11 @@ export async function updateOportunidade(id: string, data: OportunidadeInput) {
   })
 }
 
-export async function moveOportunidadeEtapa(id: string, etapa: EtapaComercial) {
-  return db.oportunidade.update({ where: { id }, data: { etapa } })
+export async function moveOportunidade(
+  id: string,
+  data: { etapa: EtapaComercial; atividade: AtividadeComercial | null }
+) {
+  return db.oportunidade.update({ where: { id }, data })
 }
 
 export async function deleteOportunidade(id: string) {

@@ -5,13 +5,13 @@ import {
   DndContext, DragEndEvent, DragOverEvent, DragStartEvent,
   PointerSensor, useSensor, useSensors, DragOverlay,
 } from "@dnd-kit/core"
-import { EtapaComercial, type Oportunidade, type User } from "@prisma/client"
-import { COLUNAS_COMERCIAL } from "@/lib/comercial"
+import { EtapaComercial, AtividadeComercial, type Oportunidade, type User } from "@prisma/client"
+import { COLUNAS_COMERCIAL, getPrimeiraAtividade } from "@/lib/comercial"
 import { ComercialColumn } from "@/components/comercial/ComercialColumn"
 import { OportunidadeModal } from "@/components/comercial/OportunidadeModal"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
-import { moveOportunidadeEtapaAction } from "@/server/actions/oportunidades"
+import { moveOportunidadeAction } from "@/server/actions/oportunidades"
 
 export type OportunidadeComResponsavel = Oportunidade & {
   responsavel: Pick<User, "id" | "name" | "email"> | null
@@ -57,7 +57,11 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
     const overEtapa = COLUNAS_COMERCIAL.find((c) => c.enum === overId)?.enum ?? findEtapa(overId)
     if (!activeEtapa || !overEtapa || activeEtapa === overEtapa) return
     setOportunidades((prev) =>
-      prev.map((op) => op.id === activeId ? { ...op, etapa: overEtapa } : op)
+      prev.map((op) =>
+        op.id === activeId
+          ? { ...op, etapa: overEtapa, atividade: getPrimeiraAtividade(overEtapa) }
+          : op
+      )
     )
   }
 
@@ -71,7 +75,15 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
     const overEtapa =
       (COLUNAS_COMERCIAL.find((c) => c.enum === overId)?.enum ?? findEtapa(overId)) as EtapaComercial | null
     if (!overEtapa || origin === overEtapa) return
-    await moveOportunidadeEtapaAction(activeId, overEtapa)
+    await moveOportunidadeAction(activeId, { etapa: overEtapa })
+  }
+
+  // Troca de atividade direto no card → move para a coluna da atividade (optimistic)
+  async function handleAtividadeChange(id: string, atividade: AtividadeComercial, etapa: EtapaComercial) {
+    setOportunidades((prev) =>
+      prev.map((op) => (op.id === id ? { ...op, atividade, etapa } : op))
+    )
+    await moveOportunidadeAction(id, { atividade })
   }
 
   return (
@@ -91,6 +103,7 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
               etapa={col}
               oportunidades={oportunidades.filter((op) => op.etapa === col.enum)}
               onCardClick={(op) => setModal({ mode: "edit", oportunidade: op })}
+              onAtividadeChange={handleAtividadeChange}
             />
           ))}
         </div>

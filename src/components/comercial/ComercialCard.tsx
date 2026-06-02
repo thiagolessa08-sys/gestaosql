@@ -2,6 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { EtapaComercial, AtividadeComercial } from "@prisma/client"
+import { getAtividadesDaEtapa, getAtividadeConfig } from "@/lib/comercial"
 import type { OportunidadeComResponsavel } from "@/components/comercial/ComercialKanban"
 
 const AVATAR_COLORS = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-orange-500", "bg-rose-500"]
@@ -9,9 +11,10 @@ const AVATAR_COLORS = ["bg-blue-500", "bg-purple-500", "bg-green-500", "bg-orang
 interface Props {
   oportunidade: OportunidadeComResponsavel
   onClick: () => void
+  onAtividadeChange: (id: string, atividade: AtividadeComercial, etapa: EtapaComercial) => void
 }
 
-export function ComercialCard({ oportunidade, onClick }: Props) {
+export function ComercialCard({ oportunidade, onClick, onAtividadeChange }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: oportunidade.id })
 
@@ -42,6 +45,14 @@ export function ComercialCard({ oportunidade, onClick }: Props) {
   const inicial = oportunidade.responsavel?.name.charAt(0).toUpperCase()
   const avatarColor = AVATAR_COLORS[oportunidade.cliente.charCodeAt(0) % AVATAR_COLORS.length]
 
+  const atividadesDaColuna = getAtividadesDaEtapa(oportunidade.etapa)
+  const isConcluido = oportunidade.etapa === EtapaComercial.CONCLUIDO
+
+  function handleSelectChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const nova = e.target.value as AtividadeComercial
+    onAtividadeChange(oportunidade.id, nova, getAtividadeConfig(nova).etapa)
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -59,9 +70,26 @@ export function ComercialCard({ oportunidade, onClick }: Props) {
         <div className="text-xs text-muted-foreground mb-1 truncate">{oportunidade.produto}</div>
       )}
 
-      {oportunidade.descricao && (
-        <div className="text-xs text-foreground/70 mb-2 line-clamp-1">{oportunidade.descricao}</div>
-      )}
+      {/* Dropdown de atividade (colunas do funil) ou badge fixo */}
+      {atividadesDaColuna.length > 0 ? (
+        <select
+          value={oportunidade.atividade ?? atividadesDaColuna[0].enum}
+          onChange={handleSelectChange}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="w-full text-xs border border-border rounded-md px-1.5 py-1 my-1 bg-muted/40 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+        >
+          {atividadesDaColuna.map((a) => (
+            <option key={a.enum} value={a.enum}>
+              {a.label} · {a.pct}%
+            </option>
+          ))}
+        </select>
+      ) : isConcluido ? (
+        <span className="inline-block text-xs font-semibold text-green-600 bg-green-50 rounded px-1.5 py-0.5 my-1">
+          100%
+        </span>
+      ) : null}
 
       <div className="flex items-end justify-between mt-2">
         <div className="flex flex-col gap-0.5">

@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
-import { EtapaComercial } from "@prisma/client"
-import { COLUNAS_COMERCIAL } from "@/lib/comercial"
+import { EtapaComercial, AtividadeComercial } from "@prisma/client"
+import { ATIVIDADES_COMERCIAL, getAtividadeConfig, getEtapaConfig } from "@/lib/comercial"
 import {
   createOportunidadeAction,
   updateOportunidadeAction,
@@ -36,11 +36,21 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, ope
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  // "selecao" representa a atividade escolhida OU os marcadores terminais "CONCLUIDO"/"PERDIDO"
+  const selecaoInicial: string = (() => {
+    if (oportunidade?.atividade) return oportunidade.atividade
+    const etapa = oportunidade?.etapa ?? etapaInicial ?? EtapaComercial.SUSPECT
+    if (etapa === EtapaComercial.CONCLUIDO) return EtapaComercial.CONCLUIDO
+    if (etapa === EtapaComercial.PERDIDO) return EtapaComercial.PERDIDO
+    // primeira atividade da etapa (fallback MAPEAMENTO)
+    return ATIVIDADES_COMERCIAL.find((a) => a.etapa === etapa)?.enum ?? AtividadeComercial.MAPEAMENTO
+  })()
+
   const [form, setForm] = useState({
     cliente:         oportunidade?.cliente ?? "",
     produto:         oportunidade?.produto ?? "",
     origemLead:      oportunidade?.origemLead ?? "",
-    etapa:           oportunidade?.etapa ?? etapaInicial ?? EtapaComercial.SUSPECT,
+    selecao:         selecaoInicial,
     valor:           oportunidade?.valor != null ? String(oportunidade.valor) : "",
     prazoFechamento: oportunidade?.prazoFechamento
       ? new Date(oportunidade.prazoFechamento).toISOString().split("T")[0]
@@ -53,10 +63,25 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, ope
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  // Deriva { etapa, atividade } a partir da seleção
+  function derivarEtapaAtividade(): { etapa: EtapaComercial; atividade: AtividadeComercial | null } {
+    if (form.selecao === EtapaComercial.CONCLUIDO) {
+      return { etapa: EtapaComercial.CONCLUIDO, atividade: null }
+    }
+    if (form.selecao === EtapaComercial.PERDIDO) {
+      return { etapa: EtapaComercial.PERDIDO, atividade: null }
+    }
+    const atividade = form.selecao as AtividadeComercial
+    return { etapa: getAtividadeConfig(atividade).etapa, atividade }
+  }
+
   function handleSubmit() {
     setError(null)
+    const { etapa, atividade } = derivarEtapaAtividade()
     const input = {
-      ...form,
+      cliente: form.cliente,
+      etapa,
+      atividade,
       valor: form.valor ? Number(form.valor) : undefined,
       prazoFechamento: form.prazoFechamento ? new Date(form.prazoFechamento) : undefined,
       responsavelId: form.responsavelId || undefined,
@@ -107,13 +132,17 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, ope
           </div>
 
           <div className="space-y-1.5">
-            <Label>Etapa</Label>
-            <Select value={form.etapa} onValueChange={(v) => set("etapa", v as EtapaComercial)}>
+            <Label>Atividade</Label>
+            <Select value={form.selecao} onValueChange={(v) => set("selecao", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {COLUNAS_COMERCIAL.map((c) => (
-                  <SelectItem key={c.enum} value={c.enum}>{c.label}</SelectItem>
+                {ATIVIDADES_COMERCIAL.map((a) => (
+                  <SelectItem key={a.enum} value={a.enum}>
+                    {getEtapaConfig(a.etapa).label} — {a.label} · {a.pct}%
+                  </SelectItem>
                 ))}
+                <SelectItem value={EtapaComercial.CONCLUIDO}>Concluído · 100%</SelectItem>
+                <SelectItem value={EtapaComercial.PERDIDO}>Perdido</SelectItem>
               </SelectContent>
             </Select>
           </div>
