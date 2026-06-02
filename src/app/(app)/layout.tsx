@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside className="w-64 flex flex-col shrink-0 shadow-sm bg-[#6366f1] text-white">
+      <aside className="w-64 flex flex-col shrink-0 shadow-sm bg-[#1e40af] text-white">
         {/* Logo */}
         <div className="px-4 py-4 flex items-center justify-center border-b border-white/25">
           {/* eslint-disable-next-line @next/next/no-img-element */}
