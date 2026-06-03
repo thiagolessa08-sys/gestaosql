@@ -7,6 +7,7 @@ import {
   adminDeleteUserAction,
   adminUpdateUserTipoAction,
   adminUpdateUserNameAction,
+  adminResetPasswordAction,
 } from "@/server/actions/users"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Trash2, UserPlus, Pencil, Check, X } from "lucide-react"
+import { Trash2, UserPlus, Pencil, Check, X, KeyRound } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
 
 type TipoUsuario = "ADMIN" | "COMERCIAL" | "PROJETOS"
@@ -53,6 +54,8 @@ export function UserManagement({ users, currentUserId }: Props) {
   const [tipo, setTipo] = useState<TipoUsuario>("PROJETOS")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
+  const [resetId, setResetId] = useState<string | null>(null)
+  const [resetPassword, setResetPassword] = useState("")
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -101,6 +104,18 @@ export function UserManagement({ users, currentUserId }: Props) {
       return
     }
     setEditingId(null)
+    router.refresh()
+  }
+
+  async function handleResetPassword(userId: string) {
+    const result = await adminResetPasswordAction(userId, resetPassword)
+    if (!result.success) {
+      alert(result.error)
+      return
+    }
+    setResetId(null)
+    setResetPassword("")
+    alert("Senha redefinida. O usuário deverá trocá-la no próximo acesso.")
     router.refresh()
   }
 
@@ -230,28 +245,62 @@ export function UserManagement({ users, currentUserId }: Props) {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  {ehProprio ? (
-                    <Badge variant="secondary" className="text-xs">{TIPO_LABEL[tipoDoUsuario(user)]}</Badge>
+                  {resetId === user.id ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="password"
+                        value={resetPassword}
+                        onChange={(e) => setResetPassword(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleResetPassword(user.id)
+                          if (e.key === "Escape") { setResetId(null); setResetPassword("") }
+                        }}
+                        autoFocus
+                        placeholder="Nova senha (mín. 8)"
+                        className="h-8 text-sm w-44"
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => handleResetPassword(user.id)}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setResetId(null); setResetPassword("") }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ) : (
-                    <select
-                      value={tipoDoUsuario(user)}
-                      onChange={(e) => handleChangeTipo(user.id, e.target.value as TipoUsuario)}
-                      className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-                    >
-                      <option value="PROJETOS">Projetos</option>
-                      <option value="COMERCIAL">Comercial</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                  )}
-                  {!ehProprio && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDelete(user.id, user.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <>
+                      {ehProprio ? (
+                        <Badge variant="secondary" className="text-xs">{TIPO_LABEL[tipoDoUsuario(user)]}</Badge>
+                      ) : (
+                        <select
+                          value={tipoDoUsuario(user)}
+                          onChange={(e) => handleChangeTipo(user.id, e.target.value as TipoUsuario)}
+                          className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                        >
+                          <option value="PROJETOS">Projetos</option>
+                          <option value="COMERCIAL">Comercial</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        title="Redefinir senha"
+                        onClick={() => { setResetId(user.id); setResetPassword("") }}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </Button>
+                      {!ehProprio && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDelete(user.id, user.name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

@@ -51,6 +51,14 @@ export async function reactivateUser(
   })
 }
 
+export async function adminResetPassword(id: string, newPassword: string) {
+  const passwordHash = await hash(newPassword, 12)
+  return db.user.update({
+    where: { id },
+    data: { passwordHash, mustChangePassword: true },
+  })
+}
+
 export async function findUserById(id: string) {
   return db.user.findUnique({
     where: { id, deletedAt: null },

@@ -7,7 +7,7 @@ import { NotificationType } from "@prisma/client"
 import { z } from "zod"
 import { changePasswordSchema } from "@/lib/schemas/auth"
 import { updateProfile, changePassword } from "@/server/services/users"
-import { createUser, findAnyUserByEmail, reactivateUser, markUserDeleted, updateUserTipo, updateUser } from "@/server/repositories/users"
+import { createUser, findAnyUserByEmail, reactivateUser, markUserDeleted, updateUserTipo, updateUser, adminResetPassword } from "@/server/repositories/users"
 import type { PerfilAcesso } from "@prisma/client"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
@@ -141,6 +141,27 @@ export async function adminUpdateUserNameAction(
   await updateUser(userId, { name: trimmed })
   revalidatePath("/configuracoes/usuarios")
   return { success: true }
+}
+
+export async function adminResetPasswordAction(
+  userId: string,
+  newPassword: string
+): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+  if (!session.user.isSystemAdmin) return { success: false, error: "Apenas administradores podem redefinir senhas." }
+
+  if (!newPassword || newPassword.length < 8) {
+    return { success: false, error: "A senha deve ter no mínimo 8 caracteres." }
+  }
+
+  try {
+    await adminResetPassword(userId, newPassword)
+    revalidatePath("/configuracoes/usuarios")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Erro ao redefinir senha." }
+  }
 }
 
 export async function adminUpdateUserTipoAction(
