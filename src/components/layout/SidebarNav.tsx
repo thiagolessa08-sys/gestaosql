@@ -34,7 +34,7 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
     if (key === "comercial")       return podeVerComercial(u)
     if (key === "painelProjetos")  return podeVerPainelProjetos(u)
     if (key === "painelComercial") return podeVerPainelComercial(u)
-    if (key === "chat") return isSystemAdmin // só admin total
+    if (key === "chat") return isSystemAdmin || perfil === "ADMIN_PROJETO"
     return true // config: todos
   })
 

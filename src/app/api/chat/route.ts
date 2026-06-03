@@ -3,7 +3,7 @@ import { auth } from "@/server/auth/config"
 import { db } from "@/server/db"
 import { EtapaComercial, PerfilAcesso } from "@prisma/client"
 import { getEtapaConfig, getAtividadeConfig } from "@/lib/comercial"
-import { isAdminTotal } from "@/lib/acesso"
+import { isAdminTotal, isAdminProjetos } from "@/lib/acesso"
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -300,12 +300,52 @@ Regras do gráfico:
 - Para porcentagens: use % no rótulo
 - Inclua o gráfico sempre que tiver 2+ valores numéricos comparáveis`
 
+const SYSTEM_PROJETOS = `Você é um assistente de gestão de projetos da SQLTech. Responde apenas sobre dados de projetos, sprints e cards.
+
+## MÓDULO PROJETOS
+
+- **Projetos**: nome, slug, descrição, status (ativo/arquivado), membros, sprints, cards
+- **Cards**: título, status (BACKLOG/DOING/VALIDATION/DONE), prioridade (LOW/MEDIUM/HIGH/CRITICAL), responsável, sprint, story points, data de vencimento
+- **Sprints**: nome, status (PLANNED/ACTIVE/COMPLETED), datas, cards associados
+
+Você NÃO tem acesso a dados do módulo comercial (oportunidades, pipeline, etc.). Se perguntado sobre comercial, informe que não tem acesso a essas informações.
+
+Use as ferramentas disponíveis sempre que precisar de dados. Responda sempre em português brasileiro.
+
+## Formatação obrigatória:
+
+**Quando houver lista de registros**, use tabela markdown:
+\`\`\`
+| Coluna 1 | Coluna 2 |
+|----------|----------|
+| valor    | valor    |
+\`\`\`
+
+**Quando houver dados numéricos comparativos**, adicione gráfico após a tabela:
+\`\`\`chart
+Label | ValorNumerico | Barras Rótulo
+\`\`\`
+
+Regras do gráfico: use █ proporcionalmente (máx 20 █), inclua sempre que tiver 2+ valores comparáveis.`
+
+const TOOLS_PROJETOS: Anthropic.Tool[] = [
+  TOOLS.find(t => t.name === "buscar_projetos")!,
+  TOOLS.find(t => t.name === "buscar_cards")!,
+  TOOLS.find(t => t.name === "resumo_dashboard")!,
+]
+
 // ── Route handler ─────────────────────────────────────────────────────────
 export async function POST(req: Request) {
   const session = await auth()
-  if (!session?.user || !isAdminTotal(session.user)) {
+  const user = session?.user
+  if (!user || (!isAdminTotal(user) && !isAdminProjetos(user))) {
     return Response.json({ error: "Acesso negado." }, { status: 403 })
   }
+
+  // Admin Projeto: system prompt e tools restritas a projetos
+  const somenteProjetos = !isAdminTotal(user) && user.perfil === "ADMIN_PROJETO"
+  const systemPrompt = somenteProjetos ? SYSTEM_PROJETOS : SYSTEM
+  const tools = somenteProjetos ? TOOLS_PROJETOS : TOOLS
 
   const { messages } = await req.json() as { messages: Anthropic.MessageParam[] }
 
@@ -320,8 +360,8 @@ export async function POST(req: Request) {
           const response = await client.messages.create({
             model: "claude-sonnet-4-6",
             max_tokens: 4096,
-            system: SYSTEM,
-            tools: TOOLS,
+            system: systemPrompt,
+            tools: tools,
             messages: currentMessages,
           })
 

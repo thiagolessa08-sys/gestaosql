@@ -46,7 +46,7 @@ export default auth((req) => {
     if (qPainelProjetos  && !podeVerPainelProjetos(u))  return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (qPainelComercial && !podeVerPainelComercial(u)) return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (pathname.startsWith("/configuracoes/usuarios") && !isAdminTotal(u)) return NextResponse.redirect(new URL(areaPadrao(u), req.url))
-    if (pathname.startsWith("/chat") && !isAdminTotal(u)) return NextResponse.redirect(new URL(areaPadrao(u), req.url))
+    if (pathname.startsWith("/chat") && !isAdminTotal(u) && u.perfil !== "ADMIN_PROJETO") return NextResponse.redirect(new URL(areaPadrao(u), req.url))
   }
 
   return NextResponse.next()
