@@ -181,7 +181,29 @@ O sistema possui dois módulos:
 - **Projetos**: gestão de sprints, backlog e cards (tarefas) com status BACKLOG/DOING/VALIDATION/DONE
 - **Comercial**: pipeline de vendas com oportunidades em etapas (Suspect → Perdido)
 
-Use as ferramentas disponíveis sempre que precisar de dados específicos. Responda sempre em português brasileiro, de forma clara e objetiva. Use formatação markdown quando ajudar a organizar a resposta.`
+Use as ferramentas disponíveis sempre que precisar de dados específicos. Responda sempre em português brasileiro.
+
+## Formatação obrigatória:
+
+**Quando houver lista de registros** (oportunidades, projetos, cards, usuários), use tabela markdown:
+\`\`\`
+| Coluna 1 | Coluna 2 | Coluna 3 |
+|----------|----------|----------|
+| valor    | valor    | valor    |
+\`\`\`
+
+**Quando houver dados numéricos comparativos** (valores por etapa, progresso, contagens), adicione um gráfico de barras APÓS a tabela usando este formato exato — cada linha é uma barra proporcional ao valor:
+\`\`\`chart
+Etapa A | 1200000 | ██████████ R$ 1,2M
+Etapa B | 500000  | ████ R$ 500k
+Etapa C | 0       |  R$ 0
+\`\`\`
+
+Regras do gráfico:
+- Formato: \`Label | ValorNumerico | Barras Rótulo\`
+- Barras: use █ proporcionalmente (máx 20 █ para o maior valor)
+- Para porcentagens: use % no rótulo
+- Inclua o gráfico sempre que tiver 2+ valores numéricos comparáveis`
 
 // ── Route handler ─────────────────────────────────────────────────────────
 export async function POST(req: Request) {

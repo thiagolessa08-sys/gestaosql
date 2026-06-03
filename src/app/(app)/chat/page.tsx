@@ -5,11 +5,54 @@ import { Send, Trash2, Bot, User, Loader2, Wrench } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface Message {
   role: "user" | "assistant"
   content: string
   toolCalls?: string[]
+}
+
+// ── Chart block renderer ────────────────────────────────────────────────────
+interface ChartRow { label: string; value: number; display: string }
+
+function parseChartBlock(raw: string): ChartRow[] {
+  return raw.trim().split("\n").flatMap(line => {
+    const parts = line.split("|")
+    if (parts.length < 3) return []
+    const label = parts[0].trim()
+    const value = parseFloat(parts[1].trim()) || 0
+    const display = parts.slice(2).join("|").replace(/█+/g, "").trim()
+    return [{ label, value, display }]
+  })
+}
+
+function ChartBlock({ raw }: { raw: string }) {
+  const rows = parseChartBlock(raw)
+  if (!rows.length) return null
+  const maxVal = Math.max(...rows.map(r => r.value), 1)
+  const colors = ["#1b2a6b", "#2f4bd9", "#5b74f0", "#8fa3f7", "#c3cefb"]
+  return (
+    <div className="mt-3 mb-1 rounded-xl border border-[#e7eaf2] bg-white p-4 space-y-2.5">
+      {rows.map((row, i) => {
+        const pct = maxVal > 0 ? (row.value / maxVal) * 100 : 0
+        return (
+          <div key={i}>
+            <div className="flex items-center justify-between text-xs mb-1 gap-2">
+              <span className="font-semibold text-[#141c30] truncate max-w-[45%]">{row.label}</span>
+              <span className="text-[#586079] shrink-0">{row.display}</span>
+            </div>
+            <div className="h-2 rounded-full bg-[#eef1f7] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${Math.max(pct, pct > 0 ? 2 : 0)}%`, background: colors[i % colors.length] }}
+              />
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 const SUGGESTIONS = [
@@ -189,8 +232,40 @@ export default function ChatPage() {
                 )}
                 {msg.role === "assistant" ? (
                   msg.content ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0.5">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:text-xs">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          table: ({ children }) => (
+                            <div className="overflow-x-auto my-2 rounded-lg border border-[#e7eaf2]">
+                              <table className="w-full border-collapse text-xs">{children}</table>
+                            </div>
+                          ),
+                          thead: ({ children }) => <thead className="bg-[#f5f7fb]">{children}</thead>,
+                          th: ({ children }) => (
+                            <th className="px-3 py-2 text-left font-bold text-[#586079] uppercase tracking-wide text-[10px] border-b border-[#e7eaf2]">{children}</th>
+                          ),
+                          td: ({ children }) => (
+                            <td className="px-3 py-2 border-b border-[#f0f2f8] text-[#141c30]">{children}</td>
+                          ),
+                          tr: ({ children }) => <tr className="hover:bg-[#fafbfe]">{children}</tr>,
+                          // @ts-expect-error custom code block
+                          code({ inline, className, children, ...props }) {
+                            const lang = (className || "").replace("language-", "")
+                            const raw = String(children).replace(/\n$/, "")
+                            if (!inline && lang === "chart") {
+                              return <ChartBlock raw={raw} />
+                            }
+                            return (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            )
+                          },
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                   ) : (
                     <span className="flex items-center gap-2 text-muted-foreground">
