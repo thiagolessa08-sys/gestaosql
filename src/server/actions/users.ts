@@ -12,12 +12,11 @@ import type { PerfilAcesso } from "@prisma/client"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
 
-type TipoUsuario = "ADMIN" | "COMERCIAL" | "PROJETOS"
+type TipoUsuario = "ADMIN_TOTAL" | "ADMIN_PROJETO" | "ADMIN_COMERCIAL" | "MEMBRO_PROJETO" | "MEMBRO_COMERCIAL"
 
 function mapTipo(tipo: TipoUsuario): { isSystemAdmin: boolean; perfil: PerfilAcesso } {
-  if (tipo === "ADMIN") return { isSystemAdmin: true, perfil: "PROJETOS" }
-  if (tipo === "COMERCIAL") return { isSystemAdmin: false, perfil: "COMERCIAL" }
-  return { isSystemAdmin: false, perfil: "PROJETOS" }
+  if (tipo === "ADMIN_TOTAL") return { isSystemAdmin: true, perfil: "MEMBRO_PROJETO" }
+  return { isSystemAdmin: false, perfil: tipo as PerfilAcesso }
 }
 
 export async function updateProfileAction(formData: FormData): Promise<ActionResult> {
@@ -73,7 +72,7 @@ const adminCreateUserSchema = z.object({
   name: z.string().min(1, "Nome obrigatório").max(100),
   email: z.string().email("Email inválido"),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
-  tipo: z.enum(["ADMIN", "COMERCIAL", "PROJETOS"]).default("PROJETOS"),
+  tipo: z.enum(["ADMIN_TOTAL", "ADMIN_PROJETO", "ADMIN_COMERCIAL", "MEMBRO_PROJETO", "MEMBRO_COMERCIAL"]).default("MEMBRO_PROJETO"),
 })
 
 export async function adminCreateUserAction(formData: FormData): Promise<ActionResult> {

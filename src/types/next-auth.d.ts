@@ -1,5 +1,7 @@
 import { DefaultSession } from "next-auth"
 import type { PerfilAcesso } from "@prisma/client"
+// PerfilAcesso: MEMBRO_PROJETO | MEMBRO_COMERCIAL | ADMIN_PROJETO | ADMIN_COMERCIAL
+// Admin Total = isSystemAdmin:true (perfil não importa)
 
 declare module "next-auth" {
   interface Session {

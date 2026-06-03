@@ -64,8 +64,9 @@ export async function deleteOportunidadeAction(
 ): Promise<ActionResult> {
   try {
     const session = await getRequiredSession()
-    if (!session.user.isSystemAdmin) {
-      return { success: false, error: "Apenas administradores podem excluir oportunidades." }
+    const { podeApagarOportunidade } = await import("@/lib/acesso")
+    if (!podeApagarOportunidade(session.user)) {
+      return { success: false, error: "Sem permissão para excluir oportunidades." }
     }
     await service.deleteOportunidade(id)
     revalidatePath("/comercial")

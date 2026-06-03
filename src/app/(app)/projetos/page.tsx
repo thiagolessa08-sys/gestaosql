@@ -4,14 +4,15 @@ import { auth } from "@/server/auth/config"
 import { getProjectsForUser, getArchivedProjects } from "@/server/services/projects"
 import { ProjectsTabs } from "@/components/projects/ProjectsTabs"
 import { Button } from "@/components/ui/button"
+import { podeGerenciarProjeto } from "@/lib/acesso"
 
 export default async function ProjetosPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const isAdmin = session.user.isSystemAdmin
+  const isAdmin = podeGerenciarProjeto(session.user)
   const [projects, arquivados] = await Promise.all([
-    getProjectsForUser(session.user.id, isAdmin),
+    getProjectsForUser(session.user.id, session.user.isSystemAdmin || session.user.perfil === "ADMIN_PROJETO"),
     isAdmin ? getArchivedProjects() : Promise.resolve([]),
   ])
 

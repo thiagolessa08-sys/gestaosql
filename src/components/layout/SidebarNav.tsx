@@ -4,21 +4,19 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutGrid, Settings, BarChart3, Briefcase } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
+import {
+  podeVerProjetos,
+  podeVerComercial,
+  podeVerPainelProjetos,
+  podeVerPainelComercial,
+} from "@/lib/acesso"
 
-type Area = "projetos" | "comercial" | "painelProjetos" | "painelComercial" | "config"
-
-const NAV_LINKS: {
-  href: string
-  activePath: string
-  label: string
-  icon: typeof LayoutGrid
-  area: Area
-}[] = [
-  { href: "/projetos", activePath: "/projetos", label: "Projetos", icon: LayoutGrid, area: "projetos" },
-  { href: "/comercial", activePath: "/comercial", label: "Comercial", icon: Briefcase, area: "comercial" },
-  { href: "/painel", activePath: "/painel", label: "Painel Projetos", icon: BarChart3, area: "painelProjetos" },
-  { href: "/painel-comercial", activePath: "/painel-comercial", label: "Painel Comercial", icon: BarChart3, area: "painelComercial" },
-  { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings, area: "config" },
+const NAV_LINKS = [
+  { href: "/projetos",        activePath: "/projetos",        label: "Projetos",         icon: LayoutGrid, key: "projetos"        },
+  { href: "/comercial",       activePath: "/comercial",       label: "Comercial",        icon: Briefcase,  key: "comercial"       },
+  { href: "/painel",          activePath: "/painel",          label: "Painel Projetos",  icon: BarChart3,  key: "painelProjetos"  },
+  { href: "/painel-comercial",activePath: "/painel-comercial",label: "Painel Comercial", icon: BarChart3,  key: "painelComercial" },
+  { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings,   key: "config"          },
 ]
 
 interface Props {
@@ -28,18 +26,15 @@ interface Props {
 
 export function SidebarNav({ isSystemAdmin, perfil }: Props) {
   const pathname = usePathname()
+  const u = { isSystemAdmin, perfil }
 
-  function podeVer(area: Area): boolean {
-    if (area === "config") return true
-    if (isSystemAdmin) return true
-    if (area === "painelProjetos") return false // só admin
-    if (area === "painelComercial") return false // só admin
-    if (area === "comercial") return perfil === "COMERCIAL"
-    if (area === "projetos") return perfil === "PROJETOS"
-    return false
-  }
-
-  const links = NAV_LINKS.filter((l) => podeVer(l.area))
+  const links = NAV_LINKS.filter(({ key }) => {
+    if (key === "projetos")        return podeVerProjetos(u)
+    if (key === "comercial")       return podeVerComercial(u)
+    if (key === "painelProjetos")  return podeVerPainelProjetos(u)
+    if (key === "painelComercial") return podeVerPainelComercial(u)
+    return true // config: todos
+  })
 
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">

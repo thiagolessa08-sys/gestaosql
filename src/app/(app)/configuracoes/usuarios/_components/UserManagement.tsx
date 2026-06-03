@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator"
 import { Trash2, UserPlus, Pencil, Check, X, KeyRound } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
 
-type TipoUsuario = "ADMIN" | "COMERCIAL" | "PROJETOS"
+type TipoUsuario = "ADMIN_TOTAL" | "ADMIN_PROJETO" | "ADMIN_COMERCIAL" | "MEMBRO_PROJETO" | "MEMBRO_COMERCIAL"
 
 interface User {
   id: string
@@ -36,14 +36,16 @@ interface Props {
 }
 
 const TIPO_LABEL: Record<TipoUsuario, string> = {
-  ADMIN: "Admin",
-  COMERCIAL: "Comercial",
-  PROJETOS: "Projetos",
+  ADMIN_TOTAL:     "Admin Total",
+  ADMIN_PROJETO:   "Admin Projeto",
+  ADMIN_COMERCIAL: "Admin Comercial",
+  MEMBRO_PROJETO:  "Membro Projeto",
+  MEMBRO_COMERCIAL:"Membro Comercial",
 }
 
 function tipoDoUsuario(u: { isSystemAdmin: boolean; perfil: PerfilAcesso }): TipoUsuario {
-  if (u.isSystemAdmin) return "ADMIN"
-  return u.perfil === "COMERCIAL" ? "COMERCIAL" : "PROJETOS"
+  if (u.isSystemAdmin) return "ADMIN_TOTAL"
+  return u.perfil as TipoUsuario
 }
 
 export function UserManagement({ users, currentUserId }: Props) {
@@ -51,7 +53,7 @@ export function UserManagement({ users, currentUserId }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [tipo, setTipo] = useState<TipoUsuario>("PROJETOS")
+  const [tipo, setTipo] = useState<TipoUsuario>("MEMBRO_PROJETO")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState("")
   const [resetId, setResetId] = useState<string | null>(null)
@@ -73,7 +75,7 @@ export function UserManagement({ users, currentUserId }: Props) {
         return
       }
       setSuccess("Usuário criado com sucesso! Ele precisará trocar a senha no primeiro acesso.")
-      setTipo("PROJETOS")
+      setTipo("MEMBRO_PROJETO")
       ;(e.target as HTMLFormElement).reset()
       router.refresh()
     } catch (err) {
@@ -165,9 +167,11 @@ export function UserManagement({ users, currentUserId }: Props) {
                   onChange={(e) => setTipo(e.target.value as TipoUsuario)}
                   className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  <option value="PROJETOS">Projetos</option>
-                  <option value="COMERCIAL">Comercial</option>
-                  <option value="ADMIN">Admin (vê tudo)</option>
+                  <option value="MEMBRO_PROJETO">Membro Projeto</option>
+                  <option value="MEMBRO_COMERCIAL">Membro Comercial</option>
+                  <option value="ADMIN_PROJETO">Admin Projeto</option>
+                  <option value="ADMIN_COMERCIAL">Admin Comercial</option>
+                  <option value="ADMIN_TOTAL">Admin Total (vê tudo)</option>
                 </select>
               </div>
             </div>
@@ -276,9 +280,11 @@ export function UserManagement({ users, currentUserId }: Props) {
                           onChange={(e) => handleChangeTipo(user.id, e.target.value as TipoUsuario)}
                           className="h-8 rounded-md border border-input bg-background px-2 text-xs"
                         >
-                          <option value="PROJETOS">Projetos</option>
-                          <option value="COMERCIAL">Comercial</option>
-                          <option value="ADMIN">Admin</option>
+                          <option value="MEMBRO_PROJETO">Membro Projeto</option>
+                          <option value="MEMBRO_COMERCIAL">Membro Comercial</option>
+                          <option value="ADMIN_PROJETO">Admin Projeto</option>
+                          <option value="ADMIN_COMERCIAL">Admin Comercial</option>
+                          <option value="ADMIN_TOTAL">Admin Total</option>
                         </select>
                       )}
                       <Button

@@ -116,6 +116,7 @@ describe("acceptInvitation", () => {
       name: "User",
       email: "user@example.com",
       isSystemAdmin: false,
+      perfil: "MEMBRO_PROJETO",
       mustChangePassword: false,
     })
     vi.mocked(membersRepo.createMember).mockResolvedValue({

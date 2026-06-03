@@ -74,8 +74,10 @@ enum EtapaComercial {
 }
 
 enum PerfilAcesso {
-  COMERCIAL
-  PROJETOS
+  MEMBRO_PROJETO
+  MEMBRO_COMERCIAL
+  ADMIN_PROJETO
+  ADMIN_COMERCIAL
 }
 
 enum AtividadeComercial {
@@ -105,7 +107,7 @@ model User {
   passwordHash       String    @map("password_hash")
   avatarUrl          String?   @map("avatar_url")
   isSystemAdmin      Boolean   @default(false) @map("is_system_admin")
-  perfil             PerfilAcesso @default(PROJETOS)
+  perfil             PerfilAcesso @default(MEMBRO_PROJETO)
   mustChangePassword Boolean   @default(false) @map("must_change_password")
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")

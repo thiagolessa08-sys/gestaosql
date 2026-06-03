@@ -110,7 +110,7 @@ export async function createUser(data: {
       email: data.email,
       passwordHash,
       isSystemAdmin: data.isSystemAdmin ?? false,
-      perfil: data.perfil ?? "PROJETOS",
+      perfil: data.perfil ?? "MEMBRO_PROJETO",
       mustChangePassword: data.mustChangePassword ?? false,
     },
     select: {
