@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutGrid, Settings, BarChart3, Briefcase } from "lucide-react"
+import { LayoutGrid, Settings, BarChart3, Briefcase, MessageSquare } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
 import {
   podeVerProjetos,
@@ -16,6 +16,7 @@ const NAV_LINKS = [
   { href: "/comercial",       activePath: "/comercial",       label: "Comercial",        icon: Briefcase,  key: "comercial"       },
   { href: "/painel",          activePath: "/painel",          label: "Painel Projetos",  icon: BarChart3,  key: "painelProjetos"  },
   { href: "/painel-comercial",activePath: "/painel-comercial",label: "Painel Comercial", icon: BarChart3,  key: "painelComercial" },
+  { href: "/chat",                activePath: "/chat",            label: "Chat IA",          icon: MessageSquare, key: "chat"            },
   { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings,   key: "config"          },
 ]
 
@@ -33,6 +34,7 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
     if (key === "comercial")       return podeVerComercial(u)
     if (key === "painelProjetos")  return podeVerPainelProjetos(u)
     if (key === "painelComercial") return podeVerPainelComercial(u)
+    if (key === "chat") return isSystemAdmin // só admin total
     return true // config: todos
   })
 
