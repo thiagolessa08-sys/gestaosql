@@ -7,7 +7,7 @@ import { NotificationType } from "@prisma/client"
 import { z } from "zod"
 import { changePasswordSchema } from "@/lib/schemas/auth"
 import { updateProfile, changePassword } from "@/server/services/users"
-import { createUser, findUserByEmail, markUserDeleted, updateUserTipo, updateUser } from "@/server/repositories/users"
+import { createUser, findAnyUserByEmail, reactivateUser, markUserDeleted, updateUserTipo, updateUser } from "@/server/repositories/users"
 import type { PerfilAcesso } from "@prisma/client"
 
 type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string }
@@ -92,19 +92,32 @@ export async function adminCreateUserAction(formData: FormData): Promise<ActionR
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
   try {
-    const existing = await findUserByEmail(parsed.data.email)
-    if (existing) return { success: false, error: "Já existe um usuário com este email." }
-
     const { isSystemAdmin, perfil } = mapTipo(parsed.data.tipo)
+    const existing = await findAnyUserByEmail(parsed.data.email)
 
-    await createUser({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      password: parsed.data.password,
-      isSystemAdmin,
-      perfil,
-      mustChangePassword: true,
-    })
+    if (existing && existing.deletedAt === null) {
+      return { success: false, error: "Já existe um usuário ativo com este email." }
+    }
+
+    if (existing && existing.deletedAt !== null) {
+      // Email pertence a um usuário removido → reativa com os novos dados
+      await reactivateUser(existing.id, {
+        name: parsed.data.name,
+        password: parsed.data.password,
+        isSystemAdmin,
+        perfil,
+        mustChangePassword: true,
+      })
+    } else {
+      await createUser({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        isSystemAdmin,
+        perfil,
+        mustChangePassword: true,
+      })
+    }
 
     revalidatePath("/configuracoes/usuarios")
     return { success: true }

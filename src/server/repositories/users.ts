@@ -16,6 +16,41 @@ export async function findUserByEmail(email: string) {
   })
 }
 
+export async function findAnyUserByEmail(email: string) {
+  return db.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      deletedAt: true,
+    },
+  })
+}
+
+export async function reactivateUser(
+  id: string,
+  data: {
+    name: string
+    password: string
+    isSystemAdmin: boolean
+    perfil: import("@prisma/client").PerfilAcesso
+    mustChangePassword: boolean
+  }
+) {
+  const passwordHash = await hash(data.password, 12)
+  return db.user.update({
+    where: { id },
+    data: {
+      name: data.name,
+      passwordHash,
+      isSystemAdmin: data.isSystemAdmin,
+      perfil: data.perfil,
+      mustChangePassword: data.mustChangePassword,
+      deletedAt: null,
+    },
+  })
+}
+
 export async function findUserById(id: string) {
   return db.user.findUnique({
     where: { id, deletedAt: null },
