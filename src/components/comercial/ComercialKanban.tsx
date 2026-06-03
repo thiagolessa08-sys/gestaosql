@@ -10,7 +10,8 @@ import { COLUNAS_COMERCIAL, getPrimeiraAtividade } from "@/lib/comercial"
 import { ComercialColumn } from "@/components/comercial/ComercialColumn"
 import { OportunidadeModal } from "@/components/comercial/OportunidadeModal"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import Link from "next/link"
+import { Plus, BarChart3 } from "lucide-react"
 import { moveOportunidadeAction } from "@/server/actions/oportunidades"
 
 export type OportunidadeComResponsavel = Oportunidade & {
@@ -89,7 +90,13 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-end px-6 py-3 border-b shrink-0">
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/comercial/dashboard">
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Dashboard
+          </Link>
+        </Button>
         <Button size="sm" onClick={() => setModal({ mode: "create", etapaInicial: EtapaComercial.SUSPECT })}>
           <Plus className="w-4 h-4 mr-1" />
           Nova Oportunidade

@@ -18,6 +18,23 @@ export async function findAllOportunidades() {
   })
 }
 
+export async function findOportunidadesParaDashboard() {
+  return db.oportunidade.findMany({
+    select: {
+      id: true,
+      cliente: true,
+      produto: true,
+      origemLead: true,
+      valor: true,
+      prazoFechamento: true,
+      etapa: true,
+      atividade: true,
+      updatedAt: true,
+      responsavel: { select: { id: true, name: true } },
+    },
+  })
+}
+
 export async function findOportunidadeById(id: string) {
   return db.oportunidade.findUnique({
     where: { id },
