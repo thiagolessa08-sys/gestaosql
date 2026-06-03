@@ -134,7 +134,7 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, can
           </div>
 
           <div className="space-y-1.5">
-            <Label>Atividade</Label>
+            <Label>Acompanhamento</Label>
             <Select value={form.selecao} onValueChange={(v) => set("selecao", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
