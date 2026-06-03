@@ -33,7 +33,8 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
     if (area === "config") return true
     if (isSystemAdmin) return true
     if (area === "painelProjetos") return false // só admin
-    if (area === "comercial" || area === "painelComercial") return perfil === "COMERCIAL"
+    if (area === "painelComercial") return false // só admin
+    if (area === "comercial") return perfil === "COMERCIAL"
     if (area === "projetos") return perfil === "PROJETOS"
     return false
   }

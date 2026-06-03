@@ -49,8 +49,8 @@ export default auth((req) => {
       const querPainelComercial = pathname.startsWith("/painel-comercial")
       const querPainelProjetos = pathname.startsWith("/painel") && !querPainelComercial
 
-      // Comercial: acessa /comercial e /painel-comercial; bloqueia projetos e painel de projetos
-      if (isComercial && (querProjetos || querPainelProjetos)) {
+      // Comercial: acessa /comercial; bloqueia projetos, painel projetos e painel comercial
+      if (isComercial && (querProjetos || querPainelProjetos || querPainelComercial)) {
         return NextResponse.redirect(new URL("/comercial", req.url))
       }
       // Projetos: acessa /projetos; bloqueia comercial, painel comercial e painel de projetos (só admin)
