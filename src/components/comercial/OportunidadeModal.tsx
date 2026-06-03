@@ -28,11 +28,12 @@ interface Props {
   oportunidade?: OportunidadeComResponsavel
   etapaInicial?: EtapaComercial
   users: UserSimples[]
+  canDelete?: boolean
   open: boolean
   onClose: () => void
 }
 
-export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, open, onClose }: Props) {
+export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, canDelete = true, open, onClose }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -190,7 +191,7 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, ope
         {error && <p className="text-sm text-destructive mt-1">{error}</p>}
 
         <DialogFooter className="flex items-center justify-between gap-2 flex-row">
-          {mode === "edit" && (
+          {mode === "edit" && canDelete && (
             <Button variant="destructive" size="sm" disabled={isPending} onClick={handleDelete}>
               {confirmDelete ? "Confirmar exclusão" : "Excluir"}
             </Button>

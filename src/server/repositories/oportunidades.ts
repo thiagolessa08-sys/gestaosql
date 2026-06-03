@@ -11,8 +11,12 @@ const includeResponsavel = {
   },
 } as const
 
-export async function findAllOportunidades() {
+export async function findAllOportunidades(filtroUsuario?: string) {
+  const where = filtroUsuario
+    ? { OR: [{ createdById: filtroUsuario }, { responsavelId: filtroUsuario }] }
+    : undefined
   return db.oportunidade.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: includeResponsavel,
   })

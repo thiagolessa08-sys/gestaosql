@@ -4,10 +4,11 @@ import { db } from "@/server/db"
 import { ComercialKanban } from "@/components/comercial/ComercialKanban"
 
 export default async function ComercialPage() {
-  await getRequiredSession()
+  const session = await getRequiredSession()
+  const filtro = session.user.isSystemAdmin ? undefined : session.user.id
 
   const [oportunidades, users] = await Promise.all([
-    findAllOportunidades(),
+    findAllOportunidades(filtro),
     db.user.findMany({
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
@@ -20,7 +21,7 @@ export default async function ComercialPage() {
         <h1 className="text-xl font-semibold">Comercial</h1>
       </div>
       <div className="flex-1 overflow-hidden">
-        <ComercialKanban oportunidades={oportunidades} users={users} />
+        <ComercialKanban oportunidades={oportunidades} users={users} isAdmin={session.user.isSystemAdmin} />
       </div>
     </div>
   )

@@ -28,9 +28,10 @@ type ModalState =
 interface Props {
   oportunidades: OportunidadeComResponsavel[]
   users: UserSimples[]
+  isAdmin?: boolean
 }
 
-export function ComercialKanban({ oportunidades: initial, users }: Props) {
+export function ComercialKanban({ oportunidades: initial, users, isAdmin = false }: Props) {
   const [oportunidades, setOportunidades] = useState(initial)
   const [activeOp, setActiveOp] = useState<OportunidadeComResponsavel | null>(null)
   const [dragOrigin, setDragOrigin] = useState<EtapaComercial | null>(null)
@@ -126,6 +127,7 @@ export function ComercialKanban({ oportunidades: initial, users }: Props) {
           oportunidade={modal.mode === "edit" ? modal.oportunidade : undefined}
           etapaInicial={modal.mode === "create" ? modal.etapaInicial : undefined}
           users={users}
+          canDelete={isAdmin}
           open={true}
           onClose={() => setModal(null)}
         />

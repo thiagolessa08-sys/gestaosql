@@ -1,180 +1,306 @@
 import type { ComercialDashboardData } from "@/server/services/comercialDashboard"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
-import { KpiCard } from "./KpiCard"
-import { BarList } from "./BarList"
+import { EtapaComercial } from "@prisma/client"
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/* ── helpers ────────────────────────────────────────────── */
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="rounded-xl border bg-card p-5">
-      <h2 className="text-sm font-semibold mb-4">{title}</h2>
+    <div className={`bg-white border border-[#e7eaf2] rounded-2xl shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.05)] ${className}`}>
       {children}
     </div>
   )
 }
 
+function SectionHeader({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-0">
+      <h3 className="font-extrabold text-[15.5px] text-[#141c30] tracking-tight">{title}</h3>
+      {hint && <span className="text-xs text-[#929bb2] font-semibold whitespace-nowrap">{hint}</span>}
+    </div>
+  )
+}
+
+/* ── sparkline ───────────────────────────────────────────── */
+function Spark({ color }: { color: string }) {
+  return (
+    <svg className="absolute right-0 bottom-0 w-[118px] h-[46px] opacity-50" viewBox="0 0 118 46" preserveAspectRatio="none">
+      <path d="M0 38 L20 34 L40 36 L60 26 L80 28 L98 16 L118 12" fill="none" stroke={color} strokeWidth="2.4"/>
+      <path d="M0 38 L20 34 L40 36 L60 26 L80 28 L98 16 L118 12 V46 H0 Z" fill={color} fillOpacity=".08"/>
+    </svg>
+  )
+}
+
+/* ── KPI card ────────────────────────────────────────────── */
+interface KpiProps {
+  label: string; value: string; caption: string
+  chipBg: string; chipColor: string; sparkColor: string
+  icon: React.ReactNode
+}
+function KpiCard({ label, value, caption, chipBg, chipColor, sparkColor, icon }: KpiProps) {
+  return (
+    <Card className="p-5 relative overflow-hidden">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: chipBg, color: chipColor }}>
+        {icon}
+      </div>
+      <p className="text-[13px] text-[#586079] font-semibold">{label}</p>
+      <p className="text-3xl font-extrabold tracking-tight mt-1.5 leading-tight" style={{ color: sparkColor === "#11a06a" ? "#0c8a5b" : "#141c30" }}>{value}</p>
+      <p className="text-xs text-[#929bb2] font-semibold mt-2">{caption}</p>
+      <Spark color={sparkColor} />
+    </Card>
+  )
+}
+
+/* ── etapa colors ────────────────────────────────────────── */
+const ETAPA_COLORS: Record<string, string> = {
+  SUSPECT: "#c7d0e8", LEAD: "#9fb0e0", PROSPECT_C: "#6f87df",
+  PROSPECT_B: "#2f4bd9", PROSPECT_A: "#2640bf",
+  CONCLUIDO: "#11a06a", PERDIDO: "#e0524a",
+}
+
+/* ── donut ───────────────────────────────────────────────── */
+function Donut({ pct }: { pct: number }) {
+  const dash = (pct / 100) * 99.9
+  return (
+    <div className="relative w-[168px] h-[168px] shrink-0">
+      <svg viewBox="0 0 42 42" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#eef1f7" strokeWidth="5"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="url(#dg)" strokeWidth="5"
+          strokeLinecap="round" strokeDasharray={`${dash} 100`} strokeDashoffset="0"/>
+        <defs>
+          <linearGradient id="dg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#11a06a"/><stop offset="1" stopColor="#2cc187"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[34px] font-extrabold tracking-tight leading-none">{pct.toFixed(0)}%</span>
+        <span className="text-[11.5px] text-[#929bb2] font-bold uppercase tracking-[.1em] mt-1.5">Conversão</span>
+      </div>
+    </div>
+  )
+}
+
+/* ── main component ──────────────────────────────────────── */
 export function DashboardView({ data }: { data: ComercialDashboardData }) {
   const { kpis, funil, ganhosPerdidos: gp, ranking, previsaoMeses, estagnadas, top, porProduto, porOrigem } = data
 
+  const maxFunil = Math.max(1, ...funil.map(f => f.valor))
+  const maxFc = Math.max(1, ...previsaoMeses.filter(m => m.label !== "Sem prazo").map(m => m.valor))
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Oportunidades abertas" value={String(kpis.abertasCount)} />
-        <KpiCard label="Valor do pipeline" value={formatBRLCompact(kpis.pipelineValor)} />
-        <KpiCard label="Forecast ponderado" value={formatBRLCompact(kpis.forecast)} sub="valor × probabilidade" />
-        <KpiCard
-          label="Ganhos no mês"
-          value={formatBRLCompact(kpis.ganhosMesValor)}
-          sub={`${kpis.ganhosMesCount} ${kpis.ganhosMesCount === 1 ? "negócio" : "negócios"}`}
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <KpiCard label="Oportunidades abertas" value={String(kpis.abertasCount)} caption="em etapas do funil"
+          chipBg="#e9eeff" chipColor="#2f4bd9" sparkColor="#2f4bd9"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>} />
+        <KpiCard label="Valor do pipeline" value={formatBRLCompact(kpis.pipelineValor)} caption="soma das oportunidades abertas"
+          chipBg="#e2f4fb" chipColor="#0f9bd1" sparkColor="#0f9bd1"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>} />
+        <KpiCard label="Forecast ponderado" value={formatBRLCompact(kpis.forecast)} caption="valor × probabilidade"
+          chipBg="#eee9ff" chipColor="#5b3df0" sparkColor="#5b3df0"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 12 22 4"/><path d="M12 12V2"/></svg>} />
+        <KpiCard label="Ganhos no mês" value={formatBRLCompact(kpis.ganhosMesValor)}
+          caption={`${kpis.ganhosMesCount} ${kpis.ganhosMesCount === 1 ? "negócio fechado" : "negócios fechados"}`}
+          chipBg="#e4f6ee" chipColor="#11a06a" sparkColor="#11a06a"
+          icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg>} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Funil */}
-        <Section title="Funil por etapa">
-          <BarList
-            items={funil.map((f) => ({
-              label: f.label,
-              valor: f.valor,
-              sub: `${f.count} · ${formatBRLCompact(f.valor)}`,
-            }))}
-          />
-        </Section>
-
-        {/* Ganhos x Perdidos */}
-        <Section title="Ganhos × Perdidos">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-              <p className="text-xs text-muted-foreground">Ganhos</p>
-              <p className="text-xl font-bold text-green-600">{gp.ganhosCount}</p>
-              <p className="text-xs text-muted-foreground">{formatBRLCompact(gp.ganhosValor)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Perdidos</p>
-              <p className="text-xl font-bold text-red-600">{gp.perdidosCount}</p>
-              <p className="text-xs text-muted-foreground">{formatBRLCompact(gp.perdidosValor)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Conversão</p>
-              <p className="text-xl font-bold">{(gp.taxaConversao * 100).toFixed(0)}%</p>
-            </div>
-          </div>
-        </Section>
-      </div>
-
-      {/* Ranking por responsável */}
-      <Section title="Desempenho por responsável">
-        {ranking.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem dados.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-muted-foreground border-b">
-                  <th className="py-2 pr-4">Responsável</th>
-                  <th className="py-2 px-2 text-right">Abertas</th>
-                  <th className="py-2 px-2 text-right">Valor aberto</th>
-                  <th className="py-2 px-2 text-right">Forecast</th>
-                  <th className="py-2 pl-2 text-right">Ganhos</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ranking.map((r) => (
-                  <tr key={r.responsavel} className="border-b last:border-0">
-                    <td className="py-2 pr-4">{r.responsavel}</td>
-                    <td className="py-2 px-2 text-right">{r.abertasCount}</td>
-                    <td className="py-2 px-2 text-right">{formatBRLCompact(r.valorAberto)}</td>
-                    <td className="py-2 px-2 text-right">{formatBRLCompact(r.forecast)}</td>
-                    <td className="py-2 pl-2 text-right text-green-600">{formatBRLCompact(r.ganhosValor)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Previsão por mês */}
-        <Section title="Previsão por mês de fechamento">
-          <BarList
-            items={previsaoMeses.map((m) => ({
-              label: m.label,
-              valor: m.valor,
-              sub: formatBRLCompact(m.valor),
-            }))}
-          />
-        </Section>
-
-        {/* Top oportunidades */}
-        <Section title="Top oportunidades em aberto">
-          {top.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem dados.</p>
-          ) : (
-            <div className="space-y-2">
-              {top.map((t) => (
-                <div key={t.id} className="flex items-center justify-between text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{t.cliente}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.etapaLabel}{t.responsavel ? ` · ${t.responsavel}` : ""}
-                    </p>
+      {/* Funil + Ganhos×Perdidos */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.32fr_1fr] gap-5">
+        <Card>
+          <SectionHeader title="Funil por etapa" hint="qtd · valor" />
+          <div className="px-5 py-4 flex flex-col gap-3.5">
+            {funil.map(f => {
+              const pct = f.valor > 0 ? Math.max(2, (f.valor / maxFunil) * 100) : 0
+              const color = ETAPA_COLORS[f.etapa] ?? "#2f4bd9"
+              const isEmpty = f.valor === 0
+              return (
+                <div key={f.etapa}>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <div className="flex items-center gap-2 text-[13.5px] font-bold text-[#141c30]">
+                      <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ background: color }}/>
+                      {f.label}
+                    </div>
+                    <span className={`text-[12.5px] font-semibold ${isEmpty ? "text-[#929bb2]" : "text-[#586079]"}`}>
+                      <b className={`font-extrabold ${isEmpty ? "text-[#929bb2]" : "text-[#141c30]"}`}>{f.count}</b>
+                      {" · "}{formatBRLCompact(f.valor)}
+                    </span>
                   </div>
-                  <span className="font-semibold text-green-600 shrink-0 ml-2">{formatBRLCompact(t.valor)}</span>
+                  <div className="h-[11px] rounded-[7px] bg-[#eef1f7] overflow-hidden">
+                    <div className="h-full rounded-[7px] transition-all duration-700"
+                      style={{ width: `${pct}%`, background: isEmpty ? color : `linear-gradient(90deg, ${color}, ${color}cc)` }} />
+                  </div>
                 </div>
-              ))}
+              )
+            })}
+          </div>
+        </Card>
+
+        <Card>
+          <SectionHeader title="Ganhos × Perdidos" hint="histórico total" />
+          <div className="px-5 py-5 flex items-center gap-6">
+            <Donut pct={Math.round(gp.taxaConversao * 100)} />
+            <div className="flex flex-col gap-3 flex-1">
+              <div className="flex items-center gap-3 p-3 rounded-[13px] border border-[#eef0f6] bg-[#fbfcfe]">
+                <div className="w-[38px] h-[38px] rounded-[11px] bg-[#e4f6ee] text-[#11a06a] flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg>
+                </div>
+                <div className="flex-1">
+                  <span className="text-[12.5px] text-[#586079] font-semibold">Ganhos</span>
+                  <b className="block text-[22px] font-extrabold tracking-tight mt-0.5">{gp.ganhosCount}</b>
+                </div>
+                <span className="text-[13px] font-bold text-[#0c8a5b]">{formatBRLCompact(gp.ganhosValor)}</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-[13px] border border-[#eef0f6] bg-[#fbfcfe]">
+                <div className="w-[38px] h-[38px] rounded-[11px] bg-[#fcebe9] text-[#e0524a] flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </div>
+                <div className="flex-1">
+                  <span className="text-[12.5px] text-[#586079] font-semibold">Perdidos</span>
+                  <b className="block text-[22px] font-extrabold tracking-tight mt-0.5">{gp.perdidosCount}</b>
+                </div>
+                <span className="text-[13px] font-bold text-[#586079]">{formatBRLCompact(gp.perdidosValor)}</span>
+              </div>
             </div>
-          )}
-        </Section>
+          </div>
+        </Card>
+      </div>
 
-        {/* Por produto */}
-        <Section title="Valor por produto">
-          <BarList
-            items={porProduto.map((p) => ({ label: p.label, valor: p.valor, sub: formatBRLCompact(p.valor) }))}
-          />
-        </Section>
+      {/* Ranking */}
+      <Card>
+        <SectionHeader title="Desempenho por responsável" hint={`${ranking.length} responsável${ranking.length !== 1 ? "is" : ""}`} />
+        <table className="w-full border-collapse mt-1">
+          <thead>
+            <tr>
+              {["Responsável","Abertas","Valor aberto","Forecast","Ganhos"].map((h, i) => (
+                <th key={h} className={`py-2 px-5 text-[11.5px] tracking-[.06em] uppercase text-[#929bb2] font-bold ${i === 0 ? "text-left" : "text-right"}`}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ranking.length === 0 ? (
+              <tr><td colSpan={5} className="px-5 py-6 text-center text-sm text-[#929bb2]">Sem dados.</td></tr>
+            ) : ranking.map(r => (
+              <tr key={r.responsavel} className="border-t border-[#f0f2f8] hover:bg-[#fafbfe]">
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2.5 font-bold text-[#141c30]">
+                    <div className="w-[34px] h-[34px] rounded-[9px] bg-gradient-to-br from-[#3a55e6] to-[#6b46f2] flex items-center justify-center text-white font-extrabold text-[13px]">
+                      {r.responsavel.charAt(0).toUpperCase()}
+                    </div>
+                    {r.responsavel}
+                  </div>
+                </td>
+                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#141c30]">{r.abertasCount}</td>
+                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#586079]">{formatBRLCompact(r.valorAberto)}</td>
+                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#586079]">{formatBRLCompact(r.forecast)}</td>
+                <td className="px-5 py-4 text-right text-[14.5px] font-extrabold text-[#0c8a5b]">{formatBRLCompact(r.ganhosValor)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
 
-        {/* Por origem */}
-        <Section title="Valor por origem do lead">
-          <BarList
-            items={porOrigem.map((o) => ({ label: o.label, valor: o.valor, sub: formatBRLCompact(o.valor) }))}
-          />
-        </Section>
+      {/* Forecast + Top */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Card>
+          <SectionHeader title="Previsão por mês de fechamento" hint="valor estimado" />
+          <div className="px-5 py-4 flex flex-col gap-4">
+            {previsaoMeses.length === 0 ? (
+              <p className="text-sm text-[#929bb2]">Sem datas cadastradas.</p>
+            ) : previsaoMeses.map((m, i) => (
+              <div key={i} className="grid grid-cols-[74px_1fr_auto] items-center gap-4">
+                <span className="text-[13px] font-bold text-[#586079] capitalize">{m.label}</span>
+                <div className="h-[14px] rounded-[8px] bg-[#eef1f7] overflow-hidden">
+                  <div className="h-full rounded-[8px]"
+                    style={{ width: `${Math.max(2, (m.valor / maxFc) * 100)}%`, background: "linear-gradient(90deg,#3858e6,#6f54f2)" }} />
+                </div>
+                <span className="text-[13.5px] font-extrabold text-[#141c30] min-w-[74px] text-right">{formatBRLCompact(m.valor)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <Card>
+          <SectionHeader title="Top oportunidades em aberto" hint="maior valor" />
+          <div className="px-3 py-2">
+            {top.length === 0 ? (
+              <p className="px-3 py-4 text-sm text-[#929bb2]">Sem dados.</p>
+            ) : top.map((t, i) => (
+              <div key={t.id} className="flex items-center gap-3.5 px-3 py-3 rounded-[13px] hover:bg-[#f7f9fd] transition-colors">
+                <div className="w-[30px] h-[30px] rounded-[9px] bg-[#e9eeff] text-[#2f4bd9] flex items-center justify-center font-extrabold text-[12.5px] shrink-0">{i + 1}</div>
+                <div className="flex-1 min-w-0">
+                  <b className="block text-[14.5px] font-bold text-[#141c30] truncate">{t.cliente}</b>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e9eeff] text-[#2843c9]">{t.etapaLabel}</span>
+                    {t.responsavel && (
+                      <span className="flex items-center gap-1.5 text-[12.5px] text-[#586079] font-semibold">
+                        <span className="w-[18px] h-[18px] rounded-[6px] bg-gradient-to-br from-[#3a55e6] to-[#6b46f2] flex items-center justify-center text-white text-[9.5px] font-extrabold">{t.responsavel.charAt(0).toUpperCase()}</span>
+                        {t.responsavel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[15px] font-extrabold text-[#0c8a5b] whitespace-nowrap">{formatBRLCompact(t.valor)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Produto + Origem */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {[{ title: "Valor por produto", items: porProduto }, { title: "Valor por origem do lead", items: porOrigem }].map(({ title, items }) => {
+          const maxV = Math.max(1, ...items.map(i => i.valor))
+          return (
+            <Card key={title}>
+              <SectionHeader title={title} />
+              <div className="px-5 py-4 flex flex-col gap-3">
+                {items.length === 0 ? <p className="text-sm text-[#929bb2]">Sem dados.</p> : items.map((it, i) => (
+                  <div key={i}>
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="truncate font-semibold text-[#141c30]">{it.label}</span>
+                      <span className="text-[#586079] ml-2 shrink-0">{formatBRLCompact(it.valor)}</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[#eef1f7] overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max(2, (it.valor / maxV) * 100)}%`, background: "linear-gradient(90deg,#2f4bd9,#5b74f0)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Estagnadas */}
-      <Section title="Oportunidades estagnadas (+14 dias sem atualização)">
+      <Card>
+        <SectionHeader title="Oportunidades estagnadas" hint="+14 dias sem atualização" />
         {estagnadas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma oportunidade estagnada. 🎉</p>
+          <p className="px-5 py-6 text-sm text-[#929bb2]">Nenhuma oportunidade estagnada. 🎉</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-muted-foreground border-b">
-                  <th className="py-2 pr-4">Cliente</th>
-                  <th className="py-2 px-2">Etapa / Atividade</th>
-                  <th className="py-2 px-2 text-right">Valor</th>
-                  <th className="py-2 px-2 text-right">Parado</th>
-                  <th className="py-2 pl-2">Responsável</th>
-                </tr>
-              </thead>
-              <tbody>
-                {estagnadas.map((e) => (
-                  <tr key={e.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4 font-medium">{e.cliente}</td>
-                    <td className="py-2 px-2 text-muted-foreground">
-                      {e.etapaLabel}{e.atividadeLabel ? ` · ${e.atividadeLabel}` : ""}
-                    </td>
-                    <td className="py-2 px-2 text-right">{e.valor ? formatBRL(e.valor) : "—"}</td>
-                    <td className="py-2 px-2 text-right text-orange-600">{e.diasParado}d</td>
-                    <td className="py-2 pl-2">{e.responsavel ?? "—"}</td>
-                  </tr>
+          <table className="w-full border-collapse mt-1">
+            <thead>
+              <tr>
+                {["Cliente","Etapa / Atividade","Valor","Parado","Responsável"].map((h, i) => (
+                  <th key={h} className={`py-2 px-5 text-[11.5px] tracking-[.06em] uppercase text-[#929bb2] font-bold ${i >= 2 ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </tr>
+            </thead>
+            <tbody>
+              {estagnadas.map(e => (
+                <tr key={e.id} className="border-t border-[#f0f2f8] hover:bg-[#fafbfe]">
+                  <td className="px-5 py-3.5 font-bold text-[14px] text-[#141c30]">{e.cliente}</td>
+                  <td className="px-5 py-3.5 text-[13px] text-[#586079]">{e.etapaLabel}{e.atividadeLabel ? ` · ${e.atividadeLabel}` : ""}</td>
+                  <td className="px-5 py-3.5 text-right text-[14px] font-semibold text-[#141c30]">{e.valor ? formatBRL(e.valor) : "—"}</td>
+                  <td className="px-5 py-3.5 text-right font-extrabold text-[#e9a23b]">{e.diasParado}d</td>
+                  <td className="px-5 py-3.5 text-[13px] text-[#586079]">{e.responsavel ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
-      </Section>
+      </Card>
     </div>
   )
 }
