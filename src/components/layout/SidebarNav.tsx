@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { LayoutGrid, Settings, BarChart3, Briefcase } from "lucide-react"
 import type { PerfilAcesso } from "@prisma/client"
 
-type Area = "projetos" | "comercial" | "painel" | "config"
+type Area = "projetos" | "comercial" | "painelProjetos" | "painelComercial" | "config"
 
 const NAV_LINKS: {
   href: string
@@ -16,7 +16,8 @@ const NAV_LINKS: {
 }[] = [
   { href: "/projetos", activePath: "/projetos", label: "Projetos", icon: LayoutGrid, area: "projetos" },
   { href: "/comercial", activePath: "/comercial", label: "Comercial", icon: Briefcase, area: "comercial" },
-  { href: "/painel", activePath: "/painel", label: "Painel", icon: BarChart3, area: "painel" },
+  { href: "/painel", activePath: "/painel", label: "Painel Projetos", icon: BarChart3, area: "painelProjetos" },
+  { href: "/painel-comercial", activePath: "/painel-comercial", label: "Painel Comercial", icon: BarChart3, area: "painelComercial" },
   { href: "/configuracoes/perfil", activePath: "/configuracoes", label: "Configurações", icon: Settings, area: "config" },
 ]
 
@@ -31,8 +32,8 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
   function podeVer(area: Area): boolean {
     if (area === "config") return true
     if (isSystemAdmin) return true
-    if (area === "painel") return false // só admin
-    if (area === "comercial") return perfil === "COMERCIAL"
+    if (area === "painelProjetos") return false // só admin
+    if (area === "comercial" || area === "painelComercial") return perfil === "COMERCIAL"
     if (area === "projetos") return perfil === "PROJETOS"
     return false
   }

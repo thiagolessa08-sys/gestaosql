@@ -46,14 +46,15 @@ export default auth((req) => {
     if (!isAdmin) {
       const querComercial = pathname.startsWith("/comercial")
       const querProjetos = pathname.startsWith("/projetos")
-      const querPainel = pathname.startsWith("/painel")
+      const querPainelComercial = pathname.startsWith("/painel-comercial")
+      const querPainelProjetos = pathname.startsWith("/painel") && !querPainelComercial
 
-      // Comercial só acessa /comercial
-      if (isComercial && (querProjetos || querPainel)) {
+      // Comercial: acessa /comercial e /painel-comercial; bloqueia projetos e painel de projetos
+      if (isComercial && (querProjetos || querPainelProjetos)) {
         return NextResponse.redirect(new URL("/comercial", req.url))
       }
-      // Projetos não acessa /comercial nem /painel
-      if (!isComercial && (querComercial || querPainel)) {
+      // Projetos: acessa /projetos; bloqueia comercial, painel comercial e painel de projetos (só admin)
+      if (!isComercial && (querComercial || querPainelComercial || querPainelProjetos)) {
         return NextResponse.redirect(new URL("/projetos", req.url))
       }
     }
