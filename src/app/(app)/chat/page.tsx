@@ -133,7 +133,7 @@ export default function ChatPage() {
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-[#1b2a6b]" />
           <h1 className="text-lg font-semibold">Chat IA</h1>
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Claude Opus 4.8</span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Claude Sonnet 4.6</span>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="sm" onClick={() => setMessages([])} disabled={isStreaming}>
