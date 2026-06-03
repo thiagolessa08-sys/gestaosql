@@ -63,18 +63,21 @@ export function UserManagement({ users, currentUserId }: Props) {
     const formData = new FormData(e.currentTarget)
     formData.set("tipo", tipo)
 
-    const result = await adminCreateUserAction(formData)
-    setLoading(false)
-
-    if (!result.success) {
-      setError(result.error)
-      return
+    try {
+      const result = await adminCreateUserAction(formData)
+      if (!result.success) {
+        setError(result.error)
+        return
+      }
+      setSuccess("Usuário criado com sucesso! Ele precisará trocar a senha no primeiro acesso.")
+      setTipo("PROJETOS")
+      ;(e.target as HTMLFormElement).reset()
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro inesperado ao criar usuário.")
+    } finally {
+      setLoading(false)
     }
-
-    setSuccess("Usuário criado com sucesso! Ele precisará trocar a senha no primeiro acesso.")
-    setTipo("PROJETOS")
-    ;(e.target as HTMLFormElement).reset()
-    router.refresh()
   }
 
   async function handleChangeTipo(userId: string, novoTipo: TipoUsuario) {

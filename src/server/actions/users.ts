@@ -91,22 +91,26 @@ export async function adminCreateUserAction(formData: FormData): Promise<ActionR
   const parsed = adminCreateUserSchema.safeParse(raw)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
-  const existing = await findUserByEmail(parsed.data.email)
-  if (existing) return { success: false, error: "Já existe um usuário com este email." }
+  try {
+    const existing = await findUserByEmail(parsed.data.email)
+    if (existing) return { success: false, error: "Já existe um usuário com este email." }
 
-  const { isSystemAdmin, perfil } = mapTipo(parsed.data.tipo)
+    const { isSystemAdmin, perfil } = mapTipo(parsed.data.tipo)
 
-  await createUser({
-    name: parsed.data.name,
-    email: parsed.data.email,
-    password: parsed.data.password,
-    isSystemAdmin,
-    perfil,
-    mustChangePassword: true,
-  })
+    await createUser({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      password: parsed.data.password,
+      isSystemAdmin,
+      perfil,
+      mustChangePassword: true,
+    })
 
-  revalidatePath("/configuracoes/usuarios")
-  return { success: true }
+    revalidatePath("/configuracoes/usuarios")
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Erro ao criar usuário." }
+  }
 }
 
 export async function adminUpdateUserNameAction(
