@@ -43,7 +43,7 @@ export function SidebarNav({ isSystemAdmin, perfil }: Props) {
   return (
     <nav className="flex-1 px-3 py-4 space-y-1">
       {links.map(({ href, activePath, label, icon: Icon }) => {
-        const active = pathname.startsWith(activePath)
+        const active = pathname === activePath || pathname.startsWith(activePath + "/")
         return (
           <Link
             key={href}
