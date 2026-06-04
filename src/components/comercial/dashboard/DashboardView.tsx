@@ -38,20 +38,24 @@ function Spark({ color }: { color: string }) {
 /* ── KPI card ────────────────────────────────────────────── */
 interface KpiProps {
   label: string; value: string; caption: string
-  chipBg: string; chipColor: string; sparkColor: string
+  chipColor: string; sparkColor: string; gradientFrom: string; gradientTo: string
+  valueColor?: string
   icon: React.ReactNode
 }
-function KpiCard({ label, value, caption, chipBg, chipColor, sparkColor, icon }: KpiProps) {
+function KpiCard({ label, value, caption, chipColor, sparkColor, gradientFrom, gradientTo, valueColor, icon }: KpiProps) {
   return (
-    <Card className="p-5 relative overflow-hidden">
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: chipBg, color: chipColor }}>
+    <div
+      className="rounded-2xl p-5 relative overflow-hidden border border-white/60 shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.06)]"
+      style={{ background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)` }}
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-white" style={{ background: chipColor }}>
         {icon}
       </div>
       <p className="text-[13px] text-[#586079] font-semibold">{label}</p>
-      <p className="text-3xl font-extrabold tracking-tight mt-1.5 leading-tight" style={{ color: sparkColor === "#11a06a" ? "#0c8a5b" : "#141c30" }}>{value}</p>
+      <p className="text-3xl font-extrabold tracking-tight mt-1.5 leading-tight" style={{ color: valueColor ?? "#141c30" }}>{value}</p>
       <p className="text-xs text-[#929bb2] font-semibold mt-2">{caption}</p>
       <Spark color={sparkColor} />
-    </Card>
+    </div>
   )
 }
 
@@ -88,17 +92,21 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <KpiCard label="Oportunidades abertas" value={String(kpis.abertasCount)} caption="em etapas do funil"
-          chipBg="#e9eeff" chipColor="#2f4bd9" sparkColor="#2f4bd9"
+          chipColor="#4361ee" sparkColor="#4361ee"
+          gradientFrom="#dce8ff" gradientTo="#eef4ff"
           icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>} />
         <KpiCard label="Valor do pipeline" value={formatBRLCompact(kpis.pipelineValor)} caption="soma das oportunidades abertas"
-          chipBg="#e2f4fb" chipColor="#0f9bd1" sparkColor="#0f9bd1"
+          chipColor="#0ea5c9" sparkColor="#0ea5c9"
+          gradientFrom="#cff0fb" gradientTo="#e8f9fd"
           icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>} />
         <KpiCard label="Forecast ponderado" value={formatBRLCompact(kpis.forecast)} caption="valor × probabilidade"
-          chipBg="#eee9ff" chipColor="#5b3df0" sparkColor="#5b3df0"
+          chipColor="#7c3aed" sparkColor="#7c3aed"
+          gradientFrom="#ede9ff" gradientTo="#f5f3ff"
           icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 12 22 4"/><path d="M12 12V2"/></svg>} />
         <KpiCard label="Ganhos no mês" value={formatBRLCompact(kpis.ganhosMesValor)}
           caption={`${kpis.ganhosMesCount} ${kpis.ganhosMesCount === 1 ? "negócio fechado" : "negócios fechados"}`}
-          chipBg="#e4f6ee" chipColor="#11a06a" sparkColor="#11a06a"
+          chipColor="#059669" sparkColor="#059669" valueColor="#065f46"
+          gradientFrom="#d1fae5" gradientTo="#ecfdf5"
           icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg>} />
       </div>
 
