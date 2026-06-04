@@ -44,8 +44,8 @@ interface KpiProps {
 function KpiCard({ label, value, caption, chipColor, sparkColor, gradientFrom, gradientTo, valueColor, icon }: KpiProps) {
   return (
     <div
-      className="rounded-2xl p-5 relative overflow-hidden border border-white/60 shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.06)]"
-      style={{ background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)` }}
+      className="rounded-2xl p-5 relative overflow-hidden shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.06)]"
+      style={{ background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)`, border: `1.5px solid ${chipColor}` }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-white" style={{ background: chipColor }}>
         {icon}
