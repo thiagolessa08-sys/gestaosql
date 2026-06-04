@@ -5,6 +5,7 @@ import { getRequiredSession } from "@/server/auth/helpers"
 import * as service from "@/server/services/oportunidades"
 import { oportunidadeSchema } from "@/lib/schemas/oportunidades"
 import { EtapaComercial, AtividadeComercial } from "@prisma/client"
+import { findOportunidadesPorResponsavel } from "@/server/repositories/oportunidades"
 
 type ActionResult<T = void> =
   | { success: true; data: T }
@@ -74,6 +75,11 @@ export async function deleteOportunidadeAction(
   } catch {
     return { success: false, error: "Erro ao excluir oportunidade." }
   }
+}
+
+export async function getRelatorioVendedorAction(responsavelNome: string) {
+  await getRequiredSession()
+  return findOportunidadesPorResponsavel(responsavelNome)
 }
 
 export async function addSubitemAction(

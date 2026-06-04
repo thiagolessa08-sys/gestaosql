@@ -22,6 +22,17 @@ export async function findAllOportunidades(filtroUsuario?: string) {
   })
 }
 
+export async function findOportunidadesPorResponsavel(responsavelNome: string) {
+  return db.oportunidade.findMany({
+    where: { responsavel: { name: { contains: responsavelNome, mode: "insensitive" } } },
+    include: {
+      responsavel: { select: { id: true, name: true, email: true } },
+      subitens: { orderBy: { criadoEm: "asc" } },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
+}
+
 export async function findOportunidadesParaDashboard() {
   return db.oportunidade.findMany({
     select: {

@@ -1,4 +1,5 @@
 import type { ComercialDashboardData } from "@/server/services/comercialDashboard"
+import { RankingTable } from "./RankingTable"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
 import { EtapaComercial } from "@prisma/client"
 
@@ -169,36 +170,8 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
 
       {/* Ranking */}
       <Card>
-        <SectionHeader title="Desempenho por responsável" hint={`${ranking.length} responsável${ranking.length !== 1 ? "is" : ""}`} />
-        <table className="w-full border-collapse mt-1">
-          <thead>
-            <tr>
-              {["Responsável","Abertas","Valor aberto","Forecast","Ganhos"].map((h, i) => (
-                <th key={h} className={`py-2 px-5 text-[11.5px] tracking-[.06em] uppercase text-[#929bb2] font-bold ${i === 0 ? "text-left" : "text-right"}`}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {ranking.length === 0 ? (
-              <tr><td colSpan={5} className="px-5 py-6 text-center text-sm text-[#929bb2]">Sem dados.</td></tr>
-            ) : ranking.map(r => (
-              <tr key={r.responsavel} className="border-t border-[#f0f2f8] hover:bg-[#fafbfe]">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2.5 font-bold text-[#141c30]">
-                    <div className="w-[34px] h-[34px] rounded-[9px] bg-gradient-to-br from-[#3a55e6] to-[#6b46f2] flex items-center justify-center text-white font-extrabold text-[13px]">
-                      {r.responsavel.charAt(0).toUpperCase()}
-                    </div>
-                    {r.responsavel}
-                  </div>
-                </td>
-                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#141c30]">{r.abertasCount}</td>
-                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#586079]">{formatBRLCompact(r.valorAberto)}</td>
-                <td className="px-5 py-4 text-right text-[14.5px] font-semibold text-[#586079]">{formatBRLCompact(r.forecast)}</td>
-                <td className="px-5 py-4 text-right text-[14.5px] font-extrabold text-[#0c8a5b]">{formatBRLCompact(r.ganhosValor)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SectionHeader title="Desempenho por responsável" hint={`${ranking.length} responsável${ranking.length !== 1 ? "is" : ""} · clique para ver relatório`} />
+        <RankingTable ranking={ranking} />
       </Card>
 
       {/* Forecast + Top */}
