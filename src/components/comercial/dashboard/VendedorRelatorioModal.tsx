@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getRelatorioVendedorAction } from "@/server/actions/oportunidades"
 import { getEtapaConfig, getAtividadeConfig } from "@/lib/comercial"
@@ -24,21 +24,27 @@ const ETAPA_COLORS: Partial<Record<EtapaComercial, string>> = {
 
 export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
   const [ops, setOps] = useState<Oportunidade[] | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [loading, setLoading] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
 
-  // Load when opened
-  if (open && ops === null && !isPending) {
-    startTransition(async () => {
-      const data = await getRelatorioVendedorAction(responsavel)
-      setOps(data)
-    })
-  }
+  useEffect(() => {
+    if (!open) return
+    let cancelado = false
+    setLoading(true)
+    setErro(null)
+    getRelatorioVendedorAction(responsavel)
+      .then(data => { if (!cancelado) setOps(data) })
+      .catch(() => { if (!cancelado) setErro("Erro ao carregar o relatório.") })
+      .finally(() => { if (!cancelado) setLoading(false) })
+    return () => { cancelado = true }
+  }, [open, responsavel])
 
-  // Reset when closed
   function handleClose() {
     setOps(null)
     onClose()
   }
+
+  const isPending = loading
 
   const abertas = ops?.filter(op => op.etapa !== EtapaComercial.CONCLUIDO && op.etapa !== EtapaComercial.PERDIDO) ?? []
   const concluidas = ops?.filter(op => op.etapa === EtapaComercial.CONCLUIDO) ?? []
@@ -58,7 +64,9 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
           </div>
         </DialogHeader>
 
-        {isPending || ops === null ? (
+        {erro ? (
+          <div className="py-12 text-center text-destructive text-sm">{erro}</div>
+        ) : isPending || ops === null ? (
           <div className="py-12 text-center text-muted-foreground text-sm">Carregando...</div>
         ) : (
           <div className="space-y-5 mt-2">
