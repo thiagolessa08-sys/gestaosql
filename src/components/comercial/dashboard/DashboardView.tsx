@@ -2,6 +2,8 @@ import type { ComercialDashboardData } from "@/server/services/comercialDashboar
 import { RankingTable } from "./RankingTable"
 import { FunilEtapas } from "./FunilEtapas"
 import { PrevisaoMeses } from "./PrevisaoMeses"
+import { BarListClicavel } from "./BarListClicavel"
+import { getRelatorioProdutoAction, getRelatorioOrigemLeadAction } from "@/server/actions/oportunidades"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
 import { EtapaComercial } from "@prisma/client"
 
@@ -179,27 +181,22 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
 
       {/* Produto + Origem */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {[{ title: "Valor por produto", items: porProduto }, { title: "Valor por origem do lead", items: porOrigem }].map(({ title, items }) => {
-          const maxV = Math.max(1, ...items.map(i => i.valor))
-          return (
-            <Card key={title}>
-              <SectionHeader title={title} />
-              <div className="px-5 py-4 flex flex-col gap-3">
-                {items.length === 0 ? <p className="text-sm text-[#929bb2]">Sem dados.</p> : items.map((it, i) => (
-                  <div key={i}>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="truncate font-semibold text-[#141c30]">{it.label}</span>
-                      <span className="text-[#586079] ml-2 shrink-0">{formatBRLCompact(it.valor)}</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-[#eef1f7] overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.max(2, (it.valor / maxV) * 100)}%`, background: "linear-gradient(90deg,#2f4bd9,#5b74f0)" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )
-        })}
+          <Card>
+          <SectionHeader title="Valor por produto" hint="clique para ver oportunidades" />
+          <div className="px-5 py-4">
+            <BarListClicavel
+              items={porProduto.map(p => ({ label: p.label, valor: p.valor, makeLoader: (label) => () => getRelatorioProdutoAction(label) }))}
+            />
+          </div>
+        </Card>
+        <Card>
+          <SectionHeader title="Valor por origem do lead" hint="clique para ver oportunidades" />
+          <div className="px-5 py-4">
+            <BarListClicavel
+              items={porOrigem.map(o => ({ label: o.label, valor: o.valor, makeLoader: (label) => () => getRelatorioOrigemLeadAction(label) }))}
+            />
+          </div>
+        </Card>
       </div>
 
       {/* Estagnadas */}

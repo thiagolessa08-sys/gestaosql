@@ -63,6 +63,28 @@ export async function findOportunidadesSemPrazo() {
   })
 }
 
+export async function findOportunidadesPorProduto(produto: string) {
+  const where = produto === "Sem produto"
+    ? { produto: null }
+    : { produto: { equals: produto, mode: "insensitive" as const } }
+  return db.oportunidade.findMany({
+    where,
+    include: { responsavel: { select: { id: true, name: true, email: true } }, subitens: { orderBy: { criadoEm: "asc" } } },
+    orderBy: { valor: "desc" },
+  })
+}
+
+export async function findOportunidadesPorOrigemLead(origem: string) {
+  const where = origem === "Sem origem"
+    ? { origemLead: null }
+    : { origemLead: { equals: origem, mode: "insensitive" as const } }
+  return db.oportunidade.findMany({
+    where,
+    include: { responsavel: { select: { id: true, name: true, email: true } }, subitens: { orderBy: { criadoEm: "asc" } } },
+    orderBy: { valor: "desc" },
+  })
+}
+
 export async function findOportunidadesPorEtapa(etapa: EtapaComercial) {
   return db.oportunidade.findMany({
     where: { etapa },

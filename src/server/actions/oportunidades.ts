@@ -5,7 +5,7 @@ import { getRequiredSession } from "@/server/auth/helpers"
 import * as service from "@/server/services/oportunidades"
 import { oportunidadeSchema } from "@/lib/schemas/oportunidades"
 import { EtapaComercial, AtividadeComercial } from "@prisma/client"
-import { findOportunidadesPorResponsavel, findOportunidadesPorEtapa, findOportunidadesPorMesFechamento, findOportunidadesSemPrazo } from "@/server/repositories/oportunidades"
+import { findOportunidadesPorResponsavel, findOportunidadesPorEtapa, findOportunidadesPorMesFechamento, findOportunidadesSemPrazo, findOportunidadesPorProduto, findOportunidadesPorOrigemLead } from "@/server/repositories/oportunidades"
 
 type ActionResult<T = void> =
   | { success: true; data: T }
@@ -95,6 +95,16 @@ export async function getRelatorioMesFechamentoAction(ano: number, mes: number) 
 export async function getRelatorioSemPrazoAction() {
   await getRequiredSession()
   return findOportunidadesSemPrazo()
+}
+
+export async function getRelatorioProdutoAction(produto: string) {
+  await getRequiredSession()
+  return findOportunidadesPorProduto(produto)
+}
+
+export async function getRelatorioOrigemLeadAction(origem: string) {
+  await getRequiredSession()
+  return findOportunidadesPorOrigemLead(origem)
 }
 
 export async function addSubitemAction(
