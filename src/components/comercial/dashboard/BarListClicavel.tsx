@@ -2,28 +2,28 @@
 
 import { useState } from "react"
 import { RelatorioOportunidadesModal } from "./RelatorioOportunidadesModal"
-import { getRelatorioVendedorAction } from "@/server/actions/oportunidades"
+import { getRelatorioProdutoAction, getRelatorioOrigemLeadAction } from "@/server/actions/oportunidades"
 import { formatBRLCompact } from "@/lib/money"
 import { Tag } from "lucide-react"
 
-type Loader = () => Promise<Awaited<ReturnType<typeof getRelatorioVendedorAction>>>
-
-interface Item {
-  label: string
-  valor: number
-  makeLoader: (label: string) => Loader
-}
+export type BarListTipo = "produto" | "origem"
 
 interface Props {
-  items: Item[]
+  items: { label: string; valor: number }[]
+  tipo: BarListTipo
   emptyText?: string
 }
 
-export function BarListClicavel({ items, emptyText = "Sem dados." }: Props) {
-  const [selecionado, setSelecionado] = useState<{ label: string; loader: Loader } | null>(null)
+export function BarListClicavel({ items, tipo, emptyText = "Sem dados." }: Props) {
+  const [selecionado, setSelecionado] = useState<string | null>(null)
   const max = Math.max(1, ...items.map(i => i.valor))
 
   if (!items.length) return <p className="text-sm text-[#929bb2]">{emptyText}</p>
+
+  function makeLoader(label: string) {
+    if (tipo === "produto") return () => getRelatorioProdutoAction(label)
+    return () => getRelatorioOrigemLeadAction(label)
+  }
 
   return (
     <>
@@ -32,7 +32,7 @@ export function BarListClicavel({ items, emptyText = "Sem dados." }: Props) {
           <button
             key={i}
             type="button"
-            onClick={() => setSelecionado({ label: item.label, loader: item.makeLoader(item.label) })}
+            onClick={() => setSelecionado(item.label)}
             className="w-full text-left rounded-lg -mx-0.5 px-0.5 py-0.5 hover:bg-[#f3f5ff] transition-colors cursor-pointer"
             title={`Ver oportunidades: ${item.label}`}
           >
@@ -52,9 +52,9 @@ export function BarListClicavel({ items, emptyText = "Sem dados." }: Props) {
 
       {selecionado && (
         <RelatorioOportunidadesModal
-          titulo={selecionado.label}
+          titulo={selecionado}
           avatar={<Tag className="w-5 h-5" />}
-          loader={selecionado.loader}
+          loader={makeLoader(selecionado)}
           mostrarKpis={false}
           open={true}
           onClose={() => setSelecionado(null)}

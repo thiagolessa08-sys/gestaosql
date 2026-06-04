@@ -3,7 +3,6 @@ import { RankingTable } from "./RankingTable"
 import { FunilEtapas } from "./FunilEtapas"
 import { PrevisaoMeses } from "./PrevisaoMeses"
 import { BarListClicavel } from "./BarListClicavel"
-import { getRelatorioProdutoAction, getRelatorioOrigemLeadAction } from "@/server/actions/oportunidades"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
 import { EtapaComercial } from "@prisma/client"
 
@@ -192,17 +191,13 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
           <Card>
           <SectionHeader title="Valor por produto" hint="clique para ver oportunidades" />
           <div className="px-5 py-4">
-            <BarListClicavel
-              items={porProduto.map(p => ({ label: p.label, valor: p.valor, makeLoader: (label) => () => getRelatorioProdutoAction(label) }))}
-            />
+            <BarListClicavel items={porProduto} tipo="produto" />
           </div>
         </Card>
         <Card>
           <SectionHeader title="Valor por origem do lead" hint="clique para ver oportunidades" />
           <div className="px-5 py-4">
-            <BarListClicavel
-              items={porOrigem.map(o => ({ label: o.label, valor: o.valor, makeLoader: (label) => () => getRelatorioOrigemLeadAction(label) }))}
-            />
+            <BarListClicavel items={porOrigem} tipo="origem" />
           </div>
         </Card>
       </div>
