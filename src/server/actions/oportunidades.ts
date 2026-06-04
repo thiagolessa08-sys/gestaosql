@@ -5,7 +5,7 @@ import { getRequiredSession } from "@/server/auth/helpers"
 import * as service from "@/server/services/oportunidades"
 import { oportunidadeSchema } from "@/lib/schemas/oportunidades"
 import { EtapaComercial, AtividadeComercial } from "@prisma/client"
-import { findOportunidadesPorResponsavel } from "@/server/repositories/oportunidades"
+import { findOportunidadesPorResponsavel, findOportunidadesPorEtapa } from "@/server/repositories/oportunidades"
 
 type ActionResult<T = void> =
   | { success: true; data: T }
@@ -80,6 +80,11 @@ export async function deleteOportunidadeAction(
 export async function getRelatorioVendedorAction(responsavelNome: string) {
   await getRequiredSession()
   return findOportunidadesPorResponsavel(responsavelNome)
+}
+
+export async function getRelatorioEtapaAction(etapa: EtapaComercial) {
+  await getRequiredSession()
+  return findOportunidadesPorEtapa(etapa)
 }
 
 export async function addSubitemAction(

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { VendedorRelatorioModal } from "./VendedorRelatorioModal"
+import { RelatorioOportunidadesModal } from "./RelatorioOportunidadesModal"
+import { getRelatorioVendedorAction } from "@/server/actions/oportunidades"
 import { formatBRLCompact } from "@/lib/money"
 import type { ComercialDashboardData } from "@/server/services/comercialDashboard"
 
@@ -50,8 +51,11 @@ export function RankingTable({ ranking }: Props) {
       </table>
 
       {vendedor && (
-        <VendedorRelatorioModal
-          responsavel={vendedor}
+        <RelatorioOportunidadesModal
+          titulo={vendedor}
+          avatar={vendedor.charAt(0).toUpperCase()}
+          loader={() => getRelatorioVendedorAction(vendedor)}
+          mostrarKpis
           open={true}
           onClose={() => setVendedor(null)}
         />

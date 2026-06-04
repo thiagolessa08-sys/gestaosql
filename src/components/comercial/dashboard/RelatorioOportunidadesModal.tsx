@@ -11,7 +11,11 @@ import { CheckSquare, TrendingUp, DollarSign, Trophy, XCircle } from "lucide-rea
 type Oportunidade = Awaited<ReturnType<typeof getRelatorioVendedorAction>>[number]
 
 interface Props {
-  responsavel: string
+  titulo: string
+  avatar: React.ReactNode
+  loader: () => Promise<Oportunidade[]>
+  /** Mostra os KPIs ganhos/perdidos (útil p/ vendedor; oculto p/ etapa única) */
+  mostrarKpis?: boolean
   open: boolean
   onClose: () => void
 }
@@ -22,7 +26,7 @@ const ETAPA_COLORS: Partial<Record<EtapaComercial, string>> = {
   CONCLUIDO: "#11a06a", PERDIDO: "#e0524a",
 }
 
-export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
+export function RelatorioOportunidadesModal({ titulo, avatar, loader, mostrarKpis = true, open, onClose }: Props) {
   const [ops, setOps] = useState<Oportunidade[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -32,25 +36,25 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
     let cancelado = false
     setLoading(true)
     setErro(null)
-    getRelatorioVendedorAction(responsavel)
+    loader()
       .then(data => { if (!cancelado) setOps(data) })
       .catch(() => { if (!cancelado) setErro("Erro ao carregar o relatório.") })
       .finally(() => { if (!cancelado) setLoading(false) })
     return () => { cancelado = true }
-  }, [open, responsavel])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, titulo])
 
   function handleClose() {
     setOps(null)
     onClose()
   }
 
-  const isPending = loading
-
   const abertas = ops?.filter(op => op.etapa !== EtapaComercial.CONCLUIDO && op.etapa !== EtapaComercial.PERDIDO) ?? []
   const concluidas = ops?.filter(op => op.etapa === EtapaComercial.CONCLUIDO) ?? []
   const perdidas = ops?.filter(op => op.etapa === EtapaComercial.PERDIDO) ?? []
   const pipeline = abertas.reduce((s, op) => s + (op.valor ? Number(op.valor) : 0), 0)
   const ganhos = concluidas.reduce((s, op) => s + (op.valor ? Number(op.valor) : 0), 0)
+  const valorTotal = (ops ?? []).reduce((s, op) => s + (op.valor ? Number(op.valor) : 0), 0)
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) handleClose() }}>
@@ -58,33 +62,36 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3a55e6] to-[#6b46f2] flex items-center justify-center text-white font-extrabold text-lg shrink-0">
-              {responsavel.charAt(0).toUpperCase()}
+              {avatar}
             </div>
-            <DialogTitle className="text-xl">{responsavel}</DialogTitle>
+            <DialogTitle className="text-xl">{titulo}</DialogTitle>
           </div>
         </DialogHeader>
 
         {erro ? (
           <div className="py-12 text-center text-destructive text-sm">{erro}</div>
-        ) : isPending || ops === null ? (
+        ) : loading || ops === null ? (
           <div className="py-12 text-center text-muted-foreground text-sm">Carregando...</div>
         ) : (
           <div className="space-y-5 mt-2">
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
+              {(mostrarKpis ? [
                 { label: "Em aberto", value: String(abertas.length), icon: TrendingUp, color: "#2f4bd9", bg: "#e9eeff" },
                 { label: "Pipeline", value: formatBRLCompact(pipeline), icon: DollarSign, color: "#0f9bd1", bg: "#e2f4fb" },
                 { label: "Ganhos", value: String(concluidas.length), sub: formatBRLCompact(ganhos), icon: Trophy, color: "#11a06a", bg: "#e4f6ee" },
                 { label: "Perdidos", value: String(perdidas.length), icon: XCircle, color: "#e0524a", bg: "#fcebe9" },
-              ].map(k => (
+              ] : [
+                { label: "Oportunidades", value: String(ops.length), icon: TrendingUp, color: "#2f4bd9", bg: "#e9eeff" },
+                { label: "Valor total", value: formatBRLCompact(valorTotal), icon: DollarSign, color: "#0f9bd1", bg: "#e2f4fb" },
+              ]).map(k => (
                 <div key={k.label} className="rounded-xl border bg-card p-3">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: k.bg, color: k.color }}>
                     <k.icon className="w-4 h-4" />
                   </div>
                   <p className="text-xs text-muted-foreground">{k.label}</p>
                   <p className="text-xl font-extrabold tracking-tight">{k.value}</p>
-                  {k.sub && <p className="text-xs text-green-600 font-semibold">{k.sub}</p>}
+                  {("sub" in k && k.sub) ? <p className="text-xs text-green-600 font-semibold">{k.sub}</p> : null}
                 </div>
               ))}
             </div>
@@ -95,7 +102,7 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
             ) : (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  Todas as oportunidades ({ops.length})
+                  {ops.length} {ops.length === 1 ? "oportunidade" : "oportunidades"}
                 </p>
                 {ops.map(op => {
                   const etapaLabel = getEtapaConfig(op.etapa).label
@@ -113,13 +120,12 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
                             {op.produto && <span className="text-xs text-muted-foreground">· {op.produto}</span>}
                           </div>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span
-                              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                              style={{ background: cor + "22", color: cor }}
-                            >
-                              {etapaLabel}
-                              {acomp && ` · ${acomp.label} (${acomp.pct}%)`}
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: cor + "22", color: cor }}>
+                              {etapaLabel}{acomp && ` · ${acomp.label} (${acomp.pct}%)`}
                             </span>
+                            {op.responsavel?.name && (
+                              <span className="text-[11px] text-muted-foreground">Resp: {op.responsavel.name}</span>
+                            )}
                             {op.origemLead && (
                               <span className="text-[11px] text-muted-foreground">Origem: {op.origemLead}</span>
                             )}
@@ -137,12 +143,8 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
                                 </div>
                                 <div className="flex items-start gap-1 mt-0.5 text-xs">
                                   <span className="text-muted-foreground shrink-0">Última:</span>
-                                  <span className={ultima.feito ? "line-through text-muted-foreground" : "text-[#141c30]"}>
-                                    {ultima.texto}
-                                  </span>
-                                  <span className="text-muted-foreground shrink-0">
-                                    · {new Date(ultima.criadoEm).toLocaleDateString("pt-BR")}
-                                  </span>
+                                  <span className={ultima.feito ? "line-through text-muted-foreground" : "text-[#141c30]"}>{ultima.texto}</span>
+                                  <span className="text-muted-foreground shrink-0">· {new Date(ultima.criadoEm).toLocaleDateString("pt-BR")}</span>
                                 </div>
                               </div>
                             )
@@ -155,9 +157,7 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
                             </p>
                           )}
                           {op.prazoFechamento && (
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
-                              {new Date(op.prazoFechamento).toLocaleDateString("pt-BR")}
-                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">{new Date(op.prazoFechamento).toLocaleDateString("pt-BR")}</p>
                           )}
                         </div>
                       </div>

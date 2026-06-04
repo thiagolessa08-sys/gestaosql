@@ -33,6 +33,17 @@ export async function findOportunidadesPorResponsavel(responsavelNome: string) {
   })
 }
 
+export async function findOportunidadesPorEtapa(etapa: EtapaComercial) {
+  return db.oportunidade.findMany({
+    where: { etapa },
+    include: {
+      responsavel: { select: { id: true, name: true, email: true } },
+      subitens: { orderBy: { criadoEm: "asc" } },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
+}
+
 export async function findOportunidadesParaDashboard() {
   return db.oportunidade.findMany({
     select: {

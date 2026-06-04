@@ -1,5 +1,6 @@
 import type { ComercialDashboardData } from "@/server/services/comercialDashboard"
 import { RankingTable } from "./RankingTable"
+import { FunilEtapas } from "./FunilEtapas"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
 import { EtapaComercial } from "@prisma/client"
 
@@ -51,13 +52,6 @@ function KpiCard({ label, value, caption, chipBg, chipColor, sparkColor, icon }:
   )
 }
 
-/* ── etapa colors ────────────────────────────────────────── */
-const ETAPA_COLORS: Record<string, string> = {
-  SUSPECT: "#c7d0e8", LEAD: "#9fb0e0", PROSPECT_C: "#6f87df",
-  PROSPECT_B: "#2f4bd9", PROSPECT_A: "#2640bf",
-  CONCLUIDO: "#11a06a", PERDIDO: "#e0524a",
-}
-
 /* ── donut ───────────────────────────────────────────────── */
 function Donut({ pct }: { pct: number }) {
   const dash = (pct / 100) * 99.9
@@ -85,7 +79,6 @@ function Donut({ pct }: { pct: number }) {
 export function DashboardView({ data }: { data: ComercialDashboardData }) {
   const { kpis, funil, ganhosPerdidos: gp, ranking, previsaoMeses, estagnadas, top, porProduto, porOrigem } = data
 
-  const maxFunil = Math.max(1, ...funil.map(f => f.valor))
   const maxFc = Math.max(1, ...previsaoMeses.filter(m => m.label !== "Sem prazo").map(m => m.valor))
 
   return (
@@ -110,32 +103,8 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
       {/* Funil + Ganhos×Perdidos */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.32fr_1fr] gap-5">
         <Card>
-          <SectionHeader title="Funil por etapa" hint="qtd · valor" />
-          <div className="px-5 py-4 flex flex-col gap-3.5">
-            {funil.map(f => {
-              const pct = f.valor > 0 ? Math.max(2, (f.valor / maxFunil) * 100) : 0
-              const color = ETAPA_COLORS[f.etapa] ?? "#2f4bd9"
-              const isEmpty = f.valor === 0
-              return (
-                <div key={f.etapa}>
-                  <div className="flex items-baseline justify-between mb-1.5">
-                    <div className="flex items-center gap-2 text-[13.5px] font-bold text-[#141c30]">
-                      <span className="w-2 h-2 rounded-[3px] shrink-0" style={{ background: color }}/>
-                      {f.label}
-                    </div>
-                    <span className={`text-[12.5px] font-semibold ${isEmpty ? "text-[#929bb2]" : "text-[#586079]"}`}>
-                      <b className={`font-extrabold ${isEmpty ? "text-[#929bb2]" : "text-[#141c30]"}`}>{f.count}</b>
-                      {" · "}{formatBRLCompact(f.valor)}
-                    </span>
-                  </div>
-                  <div className="h-[11px] rounded-[7px] bg-[#eef1f7] overflow-hidden">
-                    <div className="h-full rounded-[7px] transition-all duration-700"
-                      style={{ width: `${pct}%`, background: isEmpty ? color : `linear-gradient(90deg, ${color}, ${color}cc)` }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <SectionHeader title="Funil por etapa" hint="clique para ver oportunidades" />
+          <FunilEtapas funil={funil} />
         </Card>
 
         <Card>
