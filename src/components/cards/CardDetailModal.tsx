@@ -57,6 +57,8 @@ type ChecklistItem = {
   text: string
   isDone: boolean
   position: number
+  dataInicio: Date | null
+  dataFim: Date | null
   completedAt: Date | null
   completedById: string | null
 }
@@ -145,6 +147,8 @@ export function CardDetailModal({ card, members, allTags, activities, sprintName
             text: i.text,
             isDone: i.isDone,
             position: i.position,
+            dataInicio: i.dataInicio ?? null,
+            dataFim: i.dataFim ?? null,
             completedAt: i.completedAt ?? null,
             completedById: i.completedById ?? null,
           }))

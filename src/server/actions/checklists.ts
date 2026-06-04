@@ -7,6 +7,7 @@ import {
   countChecklistItems,
   createChecklistItem as createChecklistItemRepo,
   updateChecklistItem,
+  updateChecklistItemDatas,
   toggleChecklistItem,
   deleteChecklistItem,
   reorderChecklistItems,
@@ -110,6 +111,35 @@ export async function deleteChecklistItemAction(itemId: string): Promise<ActionR
   }
 
   await deleteChecklistItem(itemId)
+
+  revalidatePath("/projetos")
+  return { success: true }
+}
+
+export async function updateChecklistItemDatasAction(
+  itemId: string,
+  dataInicio: string | null,
+  dataFim: string | null
+): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user.id) return { success: false, error: "Não autenticado." }
+
+  const item = await findChecklistItemById(itemId)
+  if (!item) return { success: false, error: "Item não encontrado." }
+
+  const card = await findCardById(item.cardId)
+  if (!card) return { success: false, error: "Card não encontrado." }
+
+  try {
+    await requirePermission(session.user.id, card.projectId, "card:edit")
+  } catch {
+    return { success: false, error: "Sem permissão para editar este card." }
+  }
+
+  await updateChecklistItemDatas(itemId, {
+    dataInicio: dataInicio ? new Date(dataInicio) : null,
+    dataFim: dataFim ? new Date(dataFim) : null,
+  })
 
   revalidatePath("/projetos")
   return { success: true }
