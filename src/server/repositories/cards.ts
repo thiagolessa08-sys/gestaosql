@@ -71,6 +71,7 @@ export async function updateCard(
     assigneeId?: string | null
     priority?: Priority
     storyPoints?: number | null
+    dataInicio?: Date | null
     dueDate?: Date | null
     mainActivityId?: string | null
   }

@@ -211,6 +211,7 @@ export function BacklogList({
             status: openCard.status,
             priority: openCard.priority,
             storyPoints: openCard.storyPoints,
+            dataInicio: (openCard as { dataInicio?: Date | null }).dataInicio ?? null,
             dueDate: openCard.dueDate,
             assigneeId: openCard.assigneeId,
             tags: openCard.tags,

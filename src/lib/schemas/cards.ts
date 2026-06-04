@@ -19,6 +19,7 @@ export const updateCardSchema = z.object({
   assigneeId: z.string().uuid().optional().nullable(),
   priority: PriorityEnum.optional(),
   storyPoints: z.coerce.number().int().min(0).max(100).optional().nullable(),
+  dataInicio: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   tagIds: z.array(z.string().uuid()).optional(),
   mainActivityId: z.string().uuid().optional().nullable(),

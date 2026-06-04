@@ -80,6 +80,7 @@ export async function updateCardAction(
     assigneeId: formData.get("assigneeId") || null, // empty string → null to allow clearing assignee
     priority: formData.get("priority") || undefined,
     storyPoints: formData.get("storyPoints") || undefined,
+    dataInicio: formData.get("dataInicio") || undefined,
     dueDate: formData.get("dueDate") || undefined,
     tagIds: tagIdsRaw ? JSON.parse(tagIdsRaw) : undefined,
     mainActivityId: formData.has("mainActivityId")

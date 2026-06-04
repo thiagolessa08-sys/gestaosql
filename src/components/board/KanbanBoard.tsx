@@ -203,6 +203,7 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
             status: selectedCard.status,
             priority: selectedCard.priority,
             storyPoints: selectedCard.storyPoints,
+            dataInicio: (selectedCard as { dataInicio?: Date | null }).dataInicio ?? null,
             dueDate: selectedCard.dueDate,
             assigneeId: selectedCard.assigneeId,
             tags: selectedCard.tags,

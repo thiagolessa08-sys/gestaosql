@@ -30,7 +30,7 @@ const mockCard = {
   createdAt: new Date(),
   updatedAt: new Date(),
   archivedAt: null,
-  mainActivityId: null,
+  mainActivityId: null, dataInicio: null,
 }
 
 describe("createCard", () => {

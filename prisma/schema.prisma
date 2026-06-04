@@ -230,6 +230,7 @@ model Card {
   priority    Priority   @default(MEDIUM)
   status      CardStatus @default(BACKLOG)
   storyPoints Int?       @map("story_points")
+  dataInicio  DateTime?  @map("data_inicio") @db.Date
   dueDate     DateTime?  @map("due_date") @db.Date
   position    Int        @default(0)
   mainActivityId String?    @map("main_activity_id")

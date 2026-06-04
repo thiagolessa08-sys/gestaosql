@@ -72,6 +72,7 @@ interface UpdateCardInput {
     assigneeId?: string | null
     priority?: Priority
     storyPoints?: number | null
+    dataInicio?: Date | null
     dueDate?: Date | null
     tagIds?: string[]
     mainActivityId?: string | null

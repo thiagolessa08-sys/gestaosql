@@ -38,6 +38,7 @@ interface Card {
   status: string
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   storyPoints: number | null
+  dataInicio: Date | null
   dueDate: Date | null
   assigneeId: string | null
   tags: { tag: Tag }[]
@@ -104,6 +105,9 @@ export function CardDetailModal({ card, members, allTags, activities, sprintName
   const [priority, setPriority] = useState<string>(card.priority)
   const [assigneeId, setAssigneeId] = useState<string>(card.assigneeId ?? "none")
   const [storyPoints, setStoryPoints] = useState<string>(card.storyPoints?.toString() ?? "")
+  const [dataInicio, setDataInicio] = useState<string>(
+    card.dataInicio ? new Date(card.dataInicio).toISOString().split("T")[0] : ""
+  )
   const [dueDate, setDueDate] = useState<string>(
     card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : ""
   )
@@ -187,7 +191,10 @@ export function CardDetailModal({ card, members, allTags, activities, sprintName
     else formData.set("assigneeId", "")
     formData.set("priority", priority)
     if (storyPoints) formData.set("storyPoints", storyPoints)
+    if (dataInicio) formData.set("dataInicio", dataInicio)
+    else formData.set("dataInicio", "")
     if (dueDate) formData.set("dueDate", dueDate)
+    else formData.set("dueDate", "")
     formData.set("tagIds", JSON.stringify(selectedTagIds))
     formData.set("mainActivityId", mainActivityId !== "none" ? mainActivityId : "")
 
@@ -270,6 +277,32 @@ export function CardDetailModal({ card, members, allTags, activities, sprintName
               />
             </div>
 
+            {/* Datas */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Data Início
+                </p>
+                <Input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                  Data Fim
+                </p>
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+
             {/* Subtasks / Checklist */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -341,19 +374,6 @@ export function CardDetailModal({ card, members, allTags, activities, sprintName
                   <SelectItem value="CRITICAL">Crítica</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* PRAZO */}
-            <div>
-              <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Prazo
-              </Label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="mt-1.5 h-8 text-sm"
-              />
             </div>
 
             {/* SPRINT */}
