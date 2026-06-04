@@ -1,6 +1,7 @@
 import { db } from "@/server/db"
 import type { OportunidadeInput } from "@/lib/schemas/oportunidades"
-import type { EtapaComercial, AtividadeComercial } from "@prisma/client"
+import { EtapaComercial } from "@prisma/client"
+import type { AtividadeComercial } from "@prisma/client"
 
 const includeResponsavel = {
   responsavel: {
@@ -30,6 +31,35 @@ export async function findOportunidadesPorResponsavel(responsavelNome: string) {
       subitens: { orderBy: { criadoEm: "asc" } },
     },
     orderBy: { updatedAt: "desc" },
+  })
+}
+
+export async function findOportunidadesPorMesFechamento(ano: number, mes: number) {
+  const inicio = new Date(ano, mes - 1, 1)
+  const fim = new Date(ano, mes, 1)
+  return db.oportunidade.findMany({
+    where: {
+      prazoFechamento: { gte: inicio, lt: fim },
+    },
+    include: {
+      responsavel: { select: { id: true, name: true, email: true } },
+      subitens: { orderBy: { criadoEm: "asc" } },
+    },
+    orderBy: { valor: "desc" },
+  })
+}
+
+export async function findOportunidadesSemPrazo() {
+  return db.oportunidade.findMany({
+    where: {
+      etapa: { notIn: [EtapaComercial.CONCLUIDO, EtapaComercial.PERDIDO] },
+      prazoFechamento: null,
+    },
+    include: {
+      responsavel: { select: { id: true, name: true, email: true } },
+      subitens: { orderBy: { criadoEm: "asc" } },
+    },
+    orderBy: { valor: "desc" },
   })
 }
 

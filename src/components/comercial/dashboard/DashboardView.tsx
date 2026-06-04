@@ -1,6 +1,7 @@
 import type { ComercialDashboardData } from "@/server/services/comercialDashboard"
 import { RankingTable } from "./RankingTable"
 import { FunilEtapas } from "./FunilEtapas"
+import { PrevisaoMeses } from "./PrevisaoMeses"
 import { formatBRL, formatBRLCompact } from "@/lib/money"
 import { EtapaComercial } from "@prisma/client"
 
@@ -79,7 +80,6 @@ function Donut({ pct }: { pct: number }) {
 export function DashboardView({ data }: { data: ComercialDashboardData }) {
   const { kpis, funil, ganhosPerdidos: gp, ranking, previsaoMeses, estagnadas, top, porProduto, porOrigem } = data
 
-  const maxFc = Math.max(1, ...previsaoMeses.filter(m => m.label !== "Sem prazo").map(m => m.valor))
 
   return (
     <div className="space-y-5">
@@ -146,21 +146,8 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
       {/* Forecast + Top */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card>
-          <SectionHeader title="Previsão por mês de fechamento" hint="valor estimado" />
-          <div className="px-5 py-4 flex flex-col gap-4">
-            {previsaoMeses.length === 0 ? (
-              <p className="text-sm text-[#929bb2]">Sem datas cadastradas.</p>
-            ) : previsaoMeses.map((m, i) => (
-              <div key={i} className="grid grid-cols-[74px_1fr_auto] items-center gap-4">
-                <span className="text-[13px] font-bold text-[#586079] capitalize">{m.label}</span>
-                <div className="h-[14px] rounded-[8px] bg-[#eef1f7] overflow-hidden">
-                  <div className="h-full rounded-[8px]"
-                    style={{ width: `${Math.max(2, (m.valor / maxFc) * 100)}%`, background: "linear-gradient(90deg,#3858e6,#6f54f2)" }} />
-                </div>
-                <span className="text-[13.5px] font-extrabold text-[#141c30] min-w-[74px] text-right">{formatBRLCompact(m.valor)}</span>
-              </div>
-            ))}
-          </div>
+          <SectionHeader title="Previsão por mês de fechamento" hint="clique para ver oportunidades" />
+          <PrevisaoMeses previsaoMeses={previsaoMeses} />
         </Card>
 
         <Card>
