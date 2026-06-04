@@ -1,8 +1,9 @@
 import { getRequiredSession } from "@/server/auth/helpers"
 import { findAllOportunidades } from "@/server/repositories/oportunidades"
+import { findAllProdutos } from "@/server/repositories/produtos"
 import { db } from "@/server/db"
 import { ComercialKanban } from "@/components/comercial/ComercialKanban"
-import { podeApagarOportunidade } from "@/lib/acesso"
+import { podeApagarOportunidade, isAdminComercial } from "@/lib/acesso"
 
 export default async function ComercialPage() {
   const session = await getRequiredSession()
@@ -11,12 +12,13 @@ export default async function ComercialPage() {
     ? session.user.id
     : undefined
 
-  const [oportunidades, users] = await Promise.all([
+  const [oportunidades, users, produtos] = await Promise.all([
     findAllOportunidades(filtro),
     db.user.findMany({
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
     }),
+    findAllProdutos(),
   ])
 
   return (
@@ -25,7 +27,13 @@ export default async function ComercialPage() {
         <h1 className="text-xl font-semibold">Comercial</h1>
       </div>
       <div className="flex-1 overflow-hidden">
-        <ComercialKanban oportunidades={oportunidades} users={users} isAdmin={podeApagarOportunidade(session.user)} />
+        <ComercialKanban
+          oportunidades={oportunidades}
+          users={users}
+          produtos={produtos}
+          isAdmin={podeApagarOportunidade(session.user)}
+          canManageProdutos={isAdminComercial(session.user)}
+        />
       </div>
     </div>
   )

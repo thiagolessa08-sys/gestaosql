@@ -9,9 +9,12 @@ import { EtapaComercial, AtividadeComercial, type Oportunidade, type Oportunidad
 import { COLUNAS_COMERCIAL, getPrimeiraAtividade } from "@/lib/comercial"
 import { ComercialColumn } from "@/components/comercial/ComercialColumn"
 import { OportunidadeModal } from "@/components/comercial/OportunidadeModal"
+import { ProdutosModal } from "@/components/comercial/ProdutosModal"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Package } from "lucide-react"
 import { moveOportunidadeAction } from "@/server/actions/oportunidades"
+
+interface Produto { id: string; nome: string }
 
 export type OportunidadeComResponsavel = Oportunidade & {
   responsavel: Pick<User, "id" | "name" | "email"> | null
@@ -28,14 +31,18 @@ type ModalState =
 interface Props {
   oportunidades: OportunidadeComResponsavel[]
   users: UserSimples[]
+  produtos?: Produto[]
   isAdmin?: boolean
+  canManageProdutos?: boolean
 }
 
-export function ComercialKanban({ oportunidades: initial, users, isAdmin = false }: Props) {
+export function ComercialKanban({ oportunidades: initial, users, produtos = [], isAdmin = false, canManageProdutos = false }: Props) {
   const [oportunidades, setOportunidades] = useState(initial)
   const [activeOp, setActiveOp] = useState<OportunidadeComResponsavel | null>(null)
   const [dragOrigin, setDragOrigin] = useState<EtapaComercial | null>(null)
   const [modal, setModal] = useState<ModalState>(null)
+  const [produtosModalOpen, setProdutosModalOpen] = useState(false)
+  const produtosNomes = produtos.map(p => p.nome)
 
   useEffect(() => { setOportunidades(initial) }, [initial])
 
@@ -90,7 +97,13 @@ export function ComercialKanban({ oportunidades: initial, users, isAdmin = false
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-end px-6 py-3 border-b shrink-0">
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
+        {canManageProdutos && (
+          <Button variant="outline" size="sm" onClick={() => setProdutosModalOpen(true)}>
+            <Package className="w-4 h-4 mr-1" />
+            Produtos
+          </Button>
+        )}
         <Button size="sm" onClick={() => setModal({ mode: "create", etapaInicial: EtapaComercial.SUSPECT })}>
           <Plus className="w-4 h-4 mr-1" />
           Nova Oportunidade
@@ -127,9 +140,18 @@ export function ComercialKanban({ oportunidades: initial, users, isAdmin = false
           oportunidade={modal.mode === "edit" ? modal.oportunidade : undefined}
           etapaInicial={modal.mode === "create" ? modal.etapaInicial : undefined}
           users={users}
+          produtos={produtosNomes}
           canDelete={isAdmin}
           open={true}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {produtosModalOpen && (
+        <ProdutosModal
+          produtos={produtos}
+          open={true}
+          onClose={() => setProdutosModalOpen(false)}
         />
       )}
     </div>

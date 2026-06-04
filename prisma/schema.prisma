@@ -451,6 +451,14 @@ model Oportunidade {
   @@map("oportunidades")
 }
 
+model Produto {
+  id        String   @id @default(cuid())
+  nome      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("produtos")
+}
+
 model OportunidadeSubitem {
   id             String       @id @default(cuid())
   oportunidadeId String       @map("oportunidade_id")

@@ -28,12 +28,13 @@ interface Props {
   oportunidade?: OportunidadeComResponsavel
   etapaInicial?: EtapaComercial
   users: UserSimples[]
+  produtos?: string[]
   canDelete?: boolean
   open: boolean
   onClose: () => void
 }
 
-export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, canDelete = true, open, onClose }: Props) {
+export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, produtos = [], canDelete = true, open, onClose }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -125,7 +126,20 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, can
 
           <div className="space-y-1.5">
             <Label htmlFor="op-produto">Produto / Serviço</Label>
-            <Input id="op-produto" value={form.produto} onChange={(e) => set("produto", e.target.value)} placeholder="Ex: SQLTech Analytics" />
+            <select
+              id="op-produto"
+              value={form.produto}
+              onChange={(e) => set("produto", e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">— Nenhum —</option>
+              {form.produto && !produtos.includes(form.produto) && (
+                <option value={form.produto}>{form.produto}</option>
+              )}
+              {produtos.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1.5">
