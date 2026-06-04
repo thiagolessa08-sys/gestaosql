@@ -43,18 +43,39 @@ export function GerencialView({ data }: { data: ProjetosDashboardData }) {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Cards ativos", value: kpis.total, color: "#4361ee", bg: "#dce8ff", gradient: ["#dce8ff", "#eef4ff"] },
-          { label: "Em andamento", value: kpis.doing, color: "#2f4bd9", bg: "#e9eeff", gradient: ["#dce8ff", "#eef4ff"] },
-          { label: "Em validação", value: kpis.validation, color: "#d97706", bg: "#fef3c7", gradient: ["#fef3c7", "#fffbeb"] },
-          { label: "Concluídos", value: kpis.done, color: "#059669", bg: "#d1fae5", gradient: ["#d1fae5", "#ecfdf5"] },
+          {
+            label: "Cards ativos", value: kpis.total, caption: "no quadro de projetos",
+            color: "#4361ee", gradient: ["#dce8ff", "#eef4ff"],
+            icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+          },
+          {
+            label: "Em andamento", value: kpis.doing, caption: kpis.doing === 1 ? "card em execução" : "cards em execução",
+            color: "#7c3aed", gradient: ["#ede9ff", "#f5f3ff"],
+            icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>,
+          },
+          {
+            label: "Em validação", value: kpis.validation, caption: "aguardando aprovação",
+            color: "#d97706", gradient: ["#fef3c7", "#fffbeb"],
+            icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>,
+          },
+          {
+            label: "Concluídos", value: kpis.done, caption: "entregue no período",
+            color: "#059669", gradient: ["#d1fae5", "#ecfdf5"],
+            icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg>,
+          },
         ].map(k => (
-          <div key={k.label} className="rounded-2xl p-5 border border-white/60 shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.06)]"
-            style={{ background: `linear-gradient(135deg, ${k.gradient[0]} 0%, ${k.gradient[1]} 100%)`, borderColor: k.color }}>
+          <div key={k.label} className="relative overflow-hidden rounded-2xl p-5 shadow-[0_1px_2px_rgba(20,28,48,.04),0_6px_20px_rgba(20,28,48,.06)]"
+            style={{ background: `linear-gradient(135deg, ${k.gradient[0]} 0%, ${k.gradient[1]} 100%)`, border: `1.5px solid ${k.color}` }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white" style={{ background: k.color }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              {k.icon}
             </div>
             <p className="text-[13px] text-[#586079] font-semibold">{k.label}</p>
-            <p className="text-3xl font-extrabold tracking-tight mt-1" style={{ color: k.color }}>{k.value}</p>
+            <p className="text-3xl font-extrabold tracking-tight mt-1 leading-tight" style={{ color: k.color }}>{k.value}</p>
+            <p className="text-xs text-[#929bb2] font-semibold mt-2">{k.caption}</p>
+            <svg className="absolute right-0 bottom-0 w-[118px] h-[46px] opacity-50" viewBox="0 0 118 46" preserveAspectRatio="none">
+              <path d="M0 38 L20 34 L40 36 L60 26 L80 28 L98 16 L118 12" fill="none" stroke={k.color} strokeWidth="2.4"/>
+              <path d="M0 38 L20 34 L40 36 L60 26 L80 28 L98 16 L118 12 V46 H0 Z" fill={k.color} fillOpacity=".08"/>
+            </svg>
           </div>
         ))}
       </div>
