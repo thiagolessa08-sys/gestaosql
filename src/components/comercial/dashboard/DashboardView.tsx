@@ -62,10 +62,10 @@ function KpiCard({ label, value, caption, chipColor, sparkColor, gradientFrom, g
 function Donut({ pct }: { pct: number }) {
   const dash = (pct / 100) * 99.9
   return (
-    <div className="relative w-[168px] h-[168px] shrink-0">
+    <div className="relative w-[220px] h-[220px] shrink-0">
       <svg viewBox="0 0 42 42" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
-        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#eef1f7" strokeWidth="5"/>
-        <circle cx="21" cy="21" r="15.9" fill="none" stroke="url(#dg)" strokeWidth="5"
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="#eef1f7" strokeWidth="4"/>
+        <circle cx="21" cy="21" r="15.9" fill="none" stroke="url(#dg)" strokeWidth="4"
           strokeLinecap="round" strokeDasharray={`${dash} 100`} strokeDashoffset="0"/>
         <defs>
           <linearGradient id="dg" x1="0" y1="0" x2="1" y2="1">
@@ -74,8 +74,8 @@ function Donut({ pct }: { pct: number }) {
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[34px] font-extrabold tracking-tight leading-none">{pct.toFixed(0)}%</span>
-        <span className="text-[11.5px] text-[#929bb2] font-bold uppercase tracking-[.1em] mt-1.5">Conversão</span>
+        <span className="text-[44px] font-extrabold tracking-tight leading-none">{pct.toFixed(0)}%</span>
+        <span className="text-[12px] text-[#929bb2] font-bold uppercase tracking-[.12em] mt-2">Conversão</span>
       </div>
     </div>
   )
@@ -118,7 +118,7 @@ export function DashboardView({ data }: { data: ComercialDashboardData }) {
 
         <Card>
           <SectionHeader title="Ganhos × Perdidos" hint="histórico total" />
-          <div className="px-5 py-5 flex items-center gap-6">
+          <div className="px-6 py-7 flex items-center gap-8 justify-center h-full">
             <Donut pct={Math.round(gp.taxaConversao * 100)} />
             <div className="flex flex-col gap-3 flex-1">
               <div className="flex items-center gap-3 p-3 rounded-[13px] border border-[#eef0f6] bg-[#fbfcfe]">
