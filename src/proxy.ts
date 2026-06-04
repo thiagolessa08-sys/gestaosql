@@ -36,14 +36,16 @@ export default auth((req) => {
       return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     }
 
-    const qPainelComercial = pathname === "/painel-comercial" || pathname.startsWith("/painel-comercial/")
-    const qPainelProjetos  = (pathname === "/painel" || pathname.startsWith("/painel/")) && !qPainelComercial
+    const qPainelComercial  = pathname === "/painel-comercial" || pathname.startsWith("/painel-comercial/")
+    const qPainelGerencial  = pathname === "/painel-projetos" || pathname.startsWith("/painel-projetos/")
+    const qPainelProjetos   = (pathname === "/painel" || pathname.startsWith("/painel/")) && !qPainelComercial && !qPainelGerencial
     const qComercial = pathname.startsWith("/comercial")
     const qProjetos  = pathname.startsWith("/projetos")
 
     if (qProjetos        && !podeVerProjetos(u))        return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (qComercial       && !podeVerComercial(u))       return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (qPainelProjetos  && !podeVerPainelProjetos(u))  return NextResponse.redirect(new URL(areaPadrao(u), req.url))
+    if (qPainelGerencial && !podeVerPainelProjetos(u))  return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (qPainelComercial && !podeVerPainelComercial(u)) return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (pathname.startsWith("/configuracoes/usuarios") && !isAdminTotal(u)) return NextResponse.redirect(new URL(areaPadrao(u), req.url))
     if (pathname.startsWith("/chat") && !isAdminTotal(u) && u.perfil !== "ADMIN_PROJETO") return NextResponse.redirect(new URL(areaPadrao(u), req.url))
