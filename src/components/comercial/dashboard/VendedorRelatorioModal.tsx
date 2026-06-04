@@ -127,12 +127,26 @@ export function VendedorRelatorioModal({ responsavel, open, onClose }: Props) {
                           {op.descricao && (
                             <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">{op.descricao}</p>
                           )}
-                          {op.subitens.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
-                              <CheckSquare className="w-3 h-3" />
-                              {feitosCount}/{op.subitens.length} atividades
-                            </div>
-                          )}
+                          {op.subitens.length > 0 && (() => {
+                            const ultima = op.subitens[op.subitens.length - 1]
+                            return (
+                              <div className="mt-1.5">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <CheckSquare className="w-3 h-3" />
+                                  {feitosCount}/{op.subitens.length} atividades
+                                </div>
+                                <div className="flex items-start gap-1 mt-0.5 text-xs">
+                                  <span className="text-muted-foreground shrink-0">Última:</span>
+                                  <span className={ultima.feito ? "line-through text-muted-foreground" : "text-[#141c30]"}>
+                                    {ultima.texto}
+                                  </span>
+                                  <span className="text-muted-foreground shrink-0">
+                                    · {new Date(ultima.criadoEm).toLocaleDateString("pt-BR")}
+                                  </span>
+                                </div>
+                              </div>
+                            )
+                          })()}
                         </div>
                         <div className="text-right shrink-0">
                           {op.valor && (
