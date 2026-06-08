@@ -12,6 +12,7 @@ export interface ProjetosDashboardData {
     doing: number
     validation: number
     done: number
+    atrasadas: number
   }[]
   porProjeto: {
     projetoId: string
@@ -83,6 +84,7 @@ export async function getProjetosDashboard(): Promise<ProjetosDashboardData> {
     doing: cs.filter(c => c.status === "DOING").length,
     validation: cs.filter(c => c.status === "VALIDATION").length,
     done: cs.filter(c => c.status === "DONE").length,
+    atrasadas: cs.filter(c => c.dueDate && c.dueDate < hoje && c.status !== "DONE").length,
   })).sort((a, b) => b.total - a.total)
 
   // Por projeto

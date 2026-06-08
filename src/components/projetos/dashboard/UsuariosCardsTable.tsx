@@ -13,8 +13,8 @@ export function UsuariosCardsTable({ porUsuario }: { porUsuario: ProjetosDashboa
       <table className="w-full border-collapse mt-1">
         <thead>
           <tr>
-            {["Responsável", "Total", "Andamento", "Validação", "Concluídos"].map((h, i) => (
-              <th key={h} className={`py-2 px-4 text-[11px] tracking-[.06em] uppercase text-[#929bb2] font-bold ${i === 0 ? "text-left" : "text-right"}`}>{h}</th>
+            {["Responsável", "Total", "Andamento", "Validação", "Concluídos", "Atrasadas"].map((h, i) => (
+              <th key={h} className={`py-2 px-4 text-[11px] tracking-[.06em] uppercase font-bold ${i === 0 ? "text-left text-[#929bb2]" : i === 5 ? "text-right text-red-400" : "text-right text-[#929bb2]"}`}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -45,6 +45,9 @@ export function UsuariosCardsTable({ porUsuario }: { porUsuario: ProjetosDashboa
                 <td className={`px-4 py-3 text-right text-sm font-semibold ${isSem ? "text-[#929bb2]" : "text-[#2f4bd9]"}`}>{r.doing}</td>
                 <td className={`px-4 py-3 text-right text-sm font-semibold ${isSem ? "text-[#929bb2]" : "text-[#e9a23b]"}`}>{r.validation}</td>
                 <td className={`px-4 py-3 text-right text-sm font-extrabold ${isSem ? "text-[#929bb2]" : "text-[#0c8a5b]"}`}>{r.done}</td>
+                <td className={`px-4 py-3 text-right text-sm font-extrabold ${isSem ? "text-[#929bb2]" : r.atrasadas > 0 ? "text-red-600" : "text-[#929bb2]"}`}>
+                  {r.atrasadas > 0 ? `⚠ ${r.atrasadas}` : "0"}
+                </td>
               </tr>
             )
           })}
