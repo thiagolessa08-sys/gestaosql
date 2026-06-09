@@ -7,10 +7,14 @@ vi.mock("@/server/db", () => ({
     projectMember: {
       findFirst: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   },
 }))
 
 const mockFindFirst = db.projectMember.findFirst as unknown as MockInstance
+const mockUserFind = db.user.findUnique as unknown as MockInstance
 
 function mockMember(role: "ADMIN" | "SCRUM_MASTER" | "MEMBER") {
   return {

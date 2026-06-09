@@ -89,6 +89,13 @@ export async function requirePermission(
   projectId: string,
   action: ProjectAction,
 ): Promise<void> {
+  // Admin Total e Admin Projeto têm acesso total a qualquer projeto
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { isSystemAdmin: true, perfil: true },
+  })
+  if (user && (user.isSystemAdmin || user.perfil === "ADMIN_PROJETO")) return
+
   const member = await db.projectMember.findFirst({
     where: { userId, projectId, removedAt: null },
   })

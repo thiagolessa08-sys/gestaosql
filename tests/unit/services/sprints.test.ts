@@ -130,9 +130,9 @@ describe("closeSprint", () => {
     await expect(closeSprint({ sprintId: "bad-id" })).rejects.toThrow("Sprint não encontrada")
   })
 
-  it("throws if sprint is not ACTIVE", async () => {
-    vi.mocked(sprintsRepo.findSprintById).mockResolvedValue(mockSprint) // PLANNED
+  it("throws if sprint já está encerrada (COMPLETED)", async () => {
+    vi.mocked(sprintsRepo.findSprintById).mockResolvedValue({ ...mockSprint, status: "COMPLETED" })
 
-    await expect(closeSprint({ sprintId: "sprint-1" })).rejects.toThrow("Apenas sprints ACTIVE podem ser encerradas")
+    await expect(closeSprint({ sprintId: "sprint-1" })).rejects.toThrow("Apenas sprints ativas ou planejadas podem ser encerradas")
   })
 })
