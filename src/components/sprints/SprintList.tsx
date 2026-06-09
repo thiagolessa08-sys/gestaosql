@@ -189,7 +189,7 @@ function SprintCard({
                 {loadingAction === "start" ? "Iniciando..." : "Iniciar"}
               </Button>
             )}
-            {canManage && isActive && (
+            {canManage && (isActive || isPlanned) && (
               <Button
                 size="sm"
                 variant="outline"

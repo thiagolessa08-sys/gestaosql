@@ -65,7 +65,9 @@ interface CloseSprintInput {
 export async function closeSprint({ sprintId, destinationSprintId }: CloseSprintInput) {
   const sprint = await findSprintById(sprintId)
   if (!sprint) throw new Error("Sprint não encontrada")
-  if (sprint.status !== "ACTIVE") throw new Error("Apenas sprints ACTIVE podem ser encerradas")
+  if (sprint.status !== "ACTIVE" && sprint.status !== "PLANNED") {
+    throw new Error("Apenas sprints ativas ou planejadas podem ser encerradas")
+  }
 
   // Move non-DONE cards to destination sprint or back to backlog
   await db.card.updateMany({
