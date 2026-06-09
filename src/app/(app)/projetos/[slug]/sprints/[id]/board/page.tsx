@@ -7,6 +7,7 @@ import { findMembersByProjectId } from "@/server/repositories/members"
 import { findTagsByProjectId } from "@/server/repositories/tags"
 import { findMainActivitiesBySprintId } from "@/server/repositories/mainActivities"
 import { getMemberRole } from "@/server/permissions"
+import { isAdminProjetos } from "@/lib/acesso"
 import { KanbanBoard } from "@/components/board/KanbanBoard"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -37,7 +38,7 @@ export default async function BoardPage({ params }: Props) {
   const role = await getMemberRole(session.user.id, project.id)
   // Members only see cards assigned to them; admins/scrum masters see all
   const isMemberOnly =
-    !session.user.isSystemAdmin && role === "MEMBER"
+    !isAdminProjetos(session.user) && role === "MEMBER"
 
   const [rawCards, members, allTags, activities] = await Promise.all([
     findCardsBySprintId(id, isMemberOnly ? session.user.id : undefined),

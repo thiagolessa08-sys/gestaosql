@@ -6,6 +6,7 @@ import { findMembersByProjectId } from "@/server/repositories/members"
 import { findSprintsByProjectId } from "@/server/repositories/sprints"
 import { findTagsByProjectId } from "@/server/repositories/tags"
 import { getMemberRole } from "@/server/permissions"
+import { isAdminProjetos } from "@/lib/acesso"
 import { BacklogList } from "@/components/backlog/BacklogList"
 import { CardForm } from "@/components/cards/CardForm"
 
@@ -25,10 +26,10 @@ export default async function BacklogPage({ params }: Props) {
   const canCreate = !!currentRole
   const canMove = !!currentRole
   const canArchive =
-    session.user.isSystemAdmin || currentRole === "ADMIN" || currentRole === "SCRUM_MASTER"
+    isAdminProjetos(session.user) || currentRole === "ADMIN" || currentRole === "SCRUM_MASTER"
 
   const isMemberOnly =
-    !session.user.isSystemAdmin && currentRole === "MEMBER"
+    !isAdminProjetos(session.user) && currentRole === "MEMBER"
 
   const [cards, members, allTags, sprints] = await Promise.all([
     findBacklogCards(project.id, isMemberOnly ? session.user.id : undefined),
