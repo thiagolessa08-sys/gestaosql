@@ -73,10 +73,13 @@ export function NotificationBell({ initialCount }: Props) {
   const fetchNotifications = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/notifications?limit=20&offset=0")
+      const res = await fetch("/api/notifications?limit=8&offset=0")
       if (res.ok) {
         const data = await res.json()
-        setNotifications(data.notifications)
+        const sorted = [...(data.notifications as Notification[])].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setNotifications(sorted)
         setCount(0) // optimistically mark as "seen"
       }
     } finally {
@@ -144,7 +147,7 @@ export function NotificationBell({ initialCount }: Props) {
           )}
         </div>
 
-        <ScrollArea className="max-h-96">
+        <ScrollArea className="h-[420px]">
           {loading ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               Carregando...
