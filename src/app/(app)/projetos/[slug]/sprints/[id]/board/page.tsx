@@ -85,6 +85,7 @@ export default async function BoardPage({ params }: Props) {
         sprintId={id}
         sprintName={sprint.name}
         activities={activities}
+        readOnly={sprint.status === "COMPLETED" || sprint.status === "CANCELLED"}
       />
     </div>
   )

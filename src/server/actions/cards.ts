@@ -129,6 +129,13 @@ export async function moveCardAction(
     return { success: false, error: "Sem permissão para mover este card." }
   }
 
+  if (card.sprintId) {
+    const sprint = await findSprintById(card.sprintId)
+    if (sprint && (sprint.status === "COMPLETED" || sprint.status === "CANCELLED")) {
+      return { success: false, error: "Sprint encerrada. Não é possível mover cards." }
+    }
+  }
+
   const raw = {
     toStatus: formData.get("toStatus"),
     toPosition: formData.get("toPosition") ? Number(formData.get("toPosition")) : undefined,
@@ -158,6 +165,13 @@ export async function reorderCardAction(cardId: string, newPosition: number): Pr
     await requirePermission(session.user.id, card.projectId, "card:move")
   } catch {
     return { success: false, error: "Sem permissão." }
+  }
+
+  if (card.sprintId) {
+    const sprint = await findSprintById(card.sprintId)
+    if (sprint && (sprint.status === "COMPLETED" || sprint.status === "CANCELLED")) {
+      return { success: false, error: "Sprint encerrada. Não é possível mover cards." }
+    }
   }
 
   await reorderCard(cardId, newPosition)

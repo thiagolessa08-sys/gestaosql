@@ -70,9 +70,10 @@ interface Props {
   sprintId: string
   sprintName?: string
   activities: MainActivity[]
+  readOnly?: boolean
 }
 
-export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, sprintName, activities }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, sprintName, activities, readOnly = false }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   // Store the status BEFORE drag so handleDragEnd can compare correctly
@@ -100,12 +101,14 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
   }
 
   function handleDragStart({ active }: DragStartEvent) {
+    if (readOnly) return
     const card = cards.find((c) => c.id === active.id) ?? null
     setActiveCard(card)
     setDragOriginStatus(card?.status ?? null) // snapshot status before any optimistic update
   }
 
   function handleDragOver({ active, over }: DragOverEvent) {
+    if (readOnly) return
     if (!over) return
     const activeId = active.id as string
     const overId = over.id as string
@@ -129,6 +132,7 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
     const originStatus = dragOriginStatus
     setDragOriginStatus(null)
 
+    if (readOnly) return
     if (!over) return
 
     const activeId = active.id as string
@@ -164,6 +168,11 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
 
   return (
     <>
+      {readOnly && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          Sprint encerrada — somente leitura. Não é possível mover cards.
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
