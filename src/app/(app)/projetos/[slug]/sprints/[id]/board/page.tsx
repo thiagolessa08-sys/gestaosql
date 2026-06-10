@@ -9,6 +9,7 @@ import { findMainActivitiesBySprintId } from "@/server/repositories/mainActiviti
 import { getMemberRole } from "@/server/permissions"
 import { isAdminProjetos } from "@/lib/acesso"
 import { KanbanBoard } from "@/components/board/KanbanBoard"
+import { EditSprintButton } from "@/components/sprints/EditSprintButton"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,8 @@ export default async function BoardPage({ params }: Props) {
   // Members only see cards assigned to them; admins/scrum masters see all
   const isMemberOnly =
     !isAdminProjetos(session.user) && role === "MEMBER"
+  const canManage =
+    isAdminProjetos(session.user) || role === "ADMIN" || role === "SCRUM_MASTER"
 
   const [rawCards, members, allTags, activities] = await Promise.all([
     findCardsBySprintId(id, isMemberOnly ? session.user.id : undefined),
@@ -67,6 +70,15 @@ export default async function BoardPage({ params }: Props) {
           )}
         </div>
         <div className="flex gap-2">
+          {canManage && (
+            <EditSprintButton
+              sprintId={sprint.id}
+              name={sprint.name}
+              goal={sprint.goal}
+              plannedStartDate={sprint.plannedStartDate}
+              plannedEndDate={sprint.plannedEndDate}
+            />
+          )}
           <Button asChild variant="outline" size="sm">
             <Link href={`/projetos/${slug}/sprints`}>← Sprints</Link>
           </Button>
