@@ -3,6 +3,7 @@ import { auth } from "@/server/auth/config"
 import { findProjectBySlug } from "@/server/repositories/projects"
 import { findSprintsWithCardStatsByProjectId } from "@/server/repositories/sprints"
 import { getMemberRole } from "@/server/permissions"
+import { isAdminProjetos } from "@/lib/acesso"
 import { SprintList } from "@/components/sprints/SprintList"
 import { CreateSprintForm } from "@/components/sprints/CreateSprintForm"
 
@@ -21,7 +22,7 @@ export default async function SprintsPage({ params }: Props) {
   const sprints = await findSprintsWithCardStatsByProjectId(project.id)
   const currentRole = await getMemberRole(session.user.id, project.id)
   const canManage =
-    session.user.isSystemAdmin || currentRole === "ADMIN" || currentRole === "SCRUM_MASTER"
+    isAdminProjetos(session.user) || currentRole === "ADMIN" || currentRole === "SCRUM_MASTER"
 
   const activeSprint = sprints.find((s) => s.status === "ACTIVE") ?? null
   const plannedSprints = sprints.filter((s) => s.status === "PLANNED")

@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { CalendarDays, LayoutDashboard, Activity } from "lucide-react"
-import { startSprintAction, closeSprintAction } from "@/server/actions/sprints"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { CalendarDays, LayoutDashboard, Activity, Pencil } from "lucide-react"
+import { startSprintAction, closeSprintAction, updateSprintAction } from "@/server/actions/sprints"
 import { SprintActivitiesPanel } from "@/components/sprints/SprintActivitiesPanel"
 
 interface Sprint {
@@ -41,6 +43,14 @@ interface Props {
 
 function formatDate(date: Date) {
   return new Date(date).toLocaleDateString("pt-BR")
+}
+
+function toInputDate(date: Date) {
+  const d = new Date(date)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
 }
 
 function daysDiff(a: Date, b: Date) {
@@ -107,6 +117,11 @@ function SprintCard({
   const [closeDialog, setCloseDialog] = useState(false)
   const [destinationSprintId, setDestinationSprintId] = useState("none")
   const [activitiesOpen, setActivitiesOpen] = useState(false)
+  const [editDialog, setEditDialog] = useState(false)
+  const [editName, setEditName] = useState(sprint.name)
+  const [editGoal, setEditGoal] = useState(sprint.goal ?? "")
+  const [editStart, setEditStart] = useState(toInputDate(sprint.plannedStartDate))
+  const [editEnd, setEditEnd] = useState(toInputDate(sprint.plannedEndDate))
   const [error, setError] = useState<string | null>(null)
 
   const cards = sprint.cards
@@ -138,6 +153,29 @@ function SprintCard({
     setLoadingAction(null)
     setCloseDialog(false)
     if (!result.success) { setError(result.error); return }
+    router.refresh()
+  }
+
+  function openEdit() {
+    setEditName(sprint.name)
+    setEditGoal(sprint.goal ?? "")
+    setEditStart(toInputDate(sprint.plannedStartDate))
+    setEditEnd(toInputDate(sprint.plannedEndDate))
+    setError(null)
+    setEditDialog(true)
+  }
+
+  async function handleEdit() {
+    setLoadingAction("edit")
+    const formData = new FormData()
+    formData.set("name", editName)
+    formData.set("goal", editGoal)
+    formData.set("plannedStartDate", editStart)
+    formData.set("plannedEndDate", editEnd)
+    const result = await updateSprintAction(sprint.id, formData)
+    setLoadingAction(null)
+    if (!result.success) { setError(result.error); return }
+    setEditDialog(false)
     router.refresh()
   }
 
@@ -184,6 +222,17 @@ function SprintCard({
             >
               <Activity className="w-3.5 h-3.5" />
             </Button>
+            {canManage && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={openEdit}
+                title="Editar sprint"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </Button>
+            )}
             {canManage && isPlanned && !hasActiveSprint && (
               <Button size="sm" variant="outline" onClick={handleStart} disabled={loadingAction === "start"}>
                 {loadingAction === "start" ? "Iniciando..." : "Iniciar"}
@@ -280,6 +329,62 @@ function SprintCard({
             <Button variant="outline" onClick={() => setCloseDialog(false)}>Cancelar</Button>
             <Button onClick={handleClose} disabled={loadingAction === "close"}>
               {loadingAction === "close" ? "Encerrando..." : "Encerrar sprint"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit sprint dialog */}
+      <Dialog open={editDialog} onOpenChange={(o) => !o && setEditDialog(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar sprint</DialogTitle>
+            <DialogDescription>Altere o nome, datas e objetivo da sprint.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {error && <p className="text-xs text-destructive">{error}</p>}
+            <div className="space-y-1.5">
+              <Label htmlFor={`edit-name-${sprint.id}`}>Nome</Label>
+              <Input
+                id={`edit-name-${sprint.id}`}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor={`edit-start-${sprint.id}`}>Data início</Label>
+                <Input
+                  id={`edit-start-${sprint.id}`}
+                  type="date"
+                  value={editStart}
+                  onChange={(e) => setEditStart(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`edit-end-${sprint.id}`}>Data fim</Label>
+                <Input
+                  id={`edit-end-${sprint.id}`}
+                  type="date"
+                  value={editEnd}
+                  onChange={(e) => setEditEnd(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`edit-goal-${sprint.id}`}>Objetivo</Label>
+              <Textarea
+                id={`edit-goal-${sprint.id}`}
+                value={editGoal}
+                onChange={(e) => setEditGoal(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog(false)}>Cancelar</Button>
+            <Button onClick={handleEdit} disabled={loadingAction === "edit"}>
+              {loadingAction === "edit" ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>
