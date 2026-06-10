@@ -55,7 +55,7 @@ interface Tag {
 }
 
 const COLUMNS: { id: CardStatus; label: string }[] = [
-  { id: "BACKLOG", label: "Backlog" },
+  { id: "BACKLOG", label: "Planejado" },
   { id: "DOING", label: "Em andamento" },
   { id: "VALIDATION", label: "Validação" },
   { id: "DONE", label: "Concluído" },
