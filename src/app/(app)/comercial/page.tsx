@@ -1,6 +1,7 @@
 import { getRequiredSession } from "@/server/auth/helpers"
 import { findAllOportunidades } from "@/server/repositories/oportunidades"
 import { findAllProdutos } from "@/server/repositories/produtos"
+import { findAllTagsComercial } from "@/server/repositories/tagsComercial"
 import { db } from "@/server/db"
 import { ComercialKanban } from "@/components/comercial/ComercialKanban"
 import { podeApagarOportunidade, isAdminComercial } from "@/lib/acesso"
@@ -12,13 +13,14 @@ export default async function ComercialPage() {
     ? session.user.id
     : undefined
 
-  const [oportunidades, users, produtos] = await Promise.all([
+  const [oportunidades, users, produtos, tagsComercial] = await Promise.all([
     findAllOportunidades(filtro),
     db.user.findMany({
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },
     }),
     findAllProdutos(),
+    findAllTagsComercial(),
   ])
 
   return (
@@ -31,6 +33,7 @@ export default async function ComercialPage() {
           oportunidades={oportunidades}
           users={users}
           produtos={produtos}
+          tagsComercial={tagsComercial}
           isAdmin={podeApagarOportunidade(session.user)}
           canManageProdutos={isAdminComercial(session.user)}
         />

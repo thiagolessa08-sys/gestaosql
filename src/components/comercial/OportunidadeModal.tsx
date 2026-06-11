@@ -20,6 +20,8 @@ import {
 } from "@/server/actions/oportunidades"
 import type { OportunidadeComResponsavel } from "@/components/comercial/ComercialKanban"
 import { SubitensSection } from "@/components/comercial/SubitensSection"
+import { ComercialTagPicker } from "@/components/comercial/ComercialTagPicker"
+import type { TagComercial } from "@prisma/client"
 
 interface UserSimples { id: string; name: string; email: string }
 
@@ -29,12 +31,13 @@ interface Props {
   etapaInicial?: EtapaComercial
   users: UserSimples[]
   produtos?: string[]
+  tagsComercial?: TagComercial[]
   canDelete?: boolean
   open: boolean
   onClose: () => void
 }
 
-export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, produtos = [], canDelete = true, open, onClose }: Props) {
+export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, produtos = [], tagsComercial = [], canDelete = true, open, onClose }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -61,6 +64,10 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, pro
     responsavelId:   oportunidade?.responsavelId ?? "",
     descricao:       oportunidade?.descricao ?? "",
   })
+
+  const [tagIds, setTagIds] = useState<string[]>(
+    oportunidade?.tags?.map((t) => t.tag.id) ?? []
+  )
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -91,6 +98,7 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, pro
       produto: form.produto || undefined,
       origemLead: form.origemLead || undefined,
       descricao: form.descricao || undefined,
+      tagIds,
     }
     startTransition(async () => {
       const result =
@@ -184,6 +192,11 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, pro
           <div className="space-y-1.5">
             <Label htmlFor="op-prazo">Prazo de Fechamento</Label>
             <Input id="op-prazo" type="date" value={form.prazoFechamento} onChange={(e) => set("prazoFechamento", e.target.value)} />
+          </div>
+
+          <div className="col-span-2 space-y-1.5">
+            <Label>Tags</Label>
+            <ComercialTagPicker allTags={tagsComercial} selectedTagIds={tagIds} onChange={setTagIds} />
           </div>
 
           <div className="col-span-2 space-y-1.5">

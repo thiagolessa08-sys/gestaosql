@@ -11,6 +11,7 @@ export const oportunidadeSchema = z.object({
   valor: z.coerce.number().positive("Valor deve ser positivo").optional().nullable(),
   prazoFechamento: z.coerce.date().optional().nullable(),
   responsavelId: z.string().optional().nullable(),
+  tagIds: z.array(z.string()).optional(),
 })
 
 export type OportunidadeInput = z.infer<typeof oportunidadeSchema>

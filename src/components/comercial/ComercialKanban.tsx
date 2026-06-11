@@ -5,13 +5,14 @@ import {
   DndContext, DragEndEvent, DragOverEvent, DragStartEvent,
   PointerSensor, useSensor, useSensors, DragOverlay,
 } from "@dnd-kit/core"
-import { EtapaComercial, AtividadeComercial, type Oportunidade, type OportunidadeSubitem, type User } from "@prisma/client"
+import { EtapaComercial, AtividadeComercial, type Oportunidade, type OportunidadeSubitem, type User, type TagComercial } from "@prisma/client"
 import { COLUNAS_COMERCIAL, getPrimeiraAtividade } from "@/lib/comercial"
 import { ComercialColumn } from "@/components/comercial/ComercialColumn"
 import { OportunidadeModal } from "@/components/comercial/OportunidadeModal"
 import { ProdutosModal } from "@/components/comercial/ProdutosModal"
+import { TagsComercialModal } from "@/components/comercial/TagsComercialModal"
 import { Button } from "@/components/ui/button"
-import { Plus, Package } from "lucide-react"
+import { Plus, Package, Tag as TagIcon } from "lucide-react"
 import { moveOportunidadeAction } from "@/server/actions/oportunidades"
 
 interface Produto { id: string; nome: string }
@@ -19,6 +20,7 @@ interface Produto { id: string; nome: string }
 export type OportunidadeComResponsavel = Oportunidade & {
   responsavel: Pick<User, "id" | "name" | "email"> | null
   subitens: OportunidadeSubitem[]
+  tags: { tag: TagComercial }[]
 }
 
 type UserSimples = Pick<User, "id" | "name" | "email">
@@ -32,16 +34,18 @@ interface Props {
   oportunidades: OportunidadeComResponsavel[]
   users: UserSimples[]
   produtos?: Produto[]
+  tagsComercial?: TagComercial[]
   isAdmin?: boolean
   canManageProdutos?: boolean
 }
 
-export function ComercialKanban({ oportunidades: initial, users, produtos = [], isAdmin = false, canManageProdutos = false }: Props) {
+export function ComercialKanban({ oportunidades: initial, users, produtos = [], tagsComercial = [], isAdmin = false, canManageProdutos = false }: Props) {
   const [oportunidades, setOportunidades] = useState(initial)
   const [activeOp, setActiveOp] = useState<OportunidadeComResponsavel | null>(null)
   const [dragOrigin, setDragOrigin] = useState<EtapaComercial | null>(null)
   const [modal, setModal] = useState<ModalState>(null)
   const [produtosModalOpen, setProdutosModalOpen] = useState(false)
+  const [tagsModalOpen, setTagsModalOpen] = useState(false)
   const produtosNomes = produtos.map(p => p.nome)
 
   useEffect(() => { setOportunidades(initial) }, [initial])
@@ -104,6 +108,10 @@ export function ComercialKanban({ oportunidades: initial, users, produtos = [], 
             Produtos
           </Button>
         )}
+        <Button variant="outline" size="sm" onClick={() => setTagsModalOpen(true)}>
+          <TagIcon className="w-4 h-4 mr-1" />
+          Tags
+        </Button>
         <Button size="sm" onClick={() => setModal({ mode: "create", etapaInicial: EtapaComercial.SUSPECT })}>
           <Plus className="w-4 h-4 mr-1" />
           Nova Oportunidade
@@ -141,6 +149,7 @@ export function ComercialKanban({ oportunidades: initial, users, produtos = [], 
           etapaInicial={modal.mode === "create" ? modal.etapaInicial : undefined}
           users={users}
           produtos={produtosNomes}
+          tagsComercial={tagsComercial}
           canDelete={isAdmin}
           open={true}
           onClose={() => setModal(null)}
@@ -152,6 +161,15 @@ export function ComercialKanban({ oportunidades: initial, users, produtos = [], 
           produtos={produtos}
           open={true}
           onClose={() => setProdutosModalOpen(false)}
+        />
+      )}
+
+      {tagsModalOpen && (
+        <TagsComercialModal
+          tags={tagsComercial}
+          canDelete={canManageProdutos}
+          open={true}
+          onClose={() => setTagsModalOpen(false)}
         />
       )}
     </div>

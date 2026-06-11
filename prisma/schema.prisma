@@ -444,6 +444,7 @@ model Oportunidade {
   etapa           EtapaComercial @default(SUSPECT)
   atividade       AtividadeComercial?
   subitens        OportunidadeSubitem[]
+  tags            OportunidadeTagComercial[]
   responsavelId   String?        @map("responsavel_id")
   responsavel     User?          @relation("OportunidadeResponsavel", fields: [responsavelId], references: [id])
   createdById     String         @map("created_by_id")
@@ -460,6 +461,27 @@ model Produto {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("produtos")
+}
+
+model TagComercial {
+  id        String   @id @default(cuid())
+  nome      String   @unique
+  cor       String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  oportunidades OportunidadeTagComercial[]
+
+  @@map("tags_comercial")
+}
+
+model OportunidadeTagComercial {
+  oportunidadeId String       @map("oportunidade_id")
+  tagId          String       @map("tag_id")
+  oportunidade   Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  tag            TagComercial @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([oportunidadeId, tagId])
+  @@map("oportunidade_tags_comercial")
 }
 
 model OportunidadeSubitem {

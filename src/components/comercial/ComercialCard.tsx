@@ -74,6 +74,20 @@ export function ComercialCard({ oportunidade, onClick, onAtividadeChange }: Prop
         <div className="text-xs text-muted-foreground mb-1 truncate">{oportunidade.produto}</div>
       )}
 
+      {oportunidade.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1">
+          {oportunidade.tags.map(({ tag }) => (
+            <span
+              key={tag.id}
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{ backgroundColor: `${tag.cor}22`, color: tag.cor }}
+            >
+              {tag.nome}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Dropdown de atividade (colunas do funil) ou badge fixo */}
       {atividadesDaColuna.length > 0 ? (
         <select

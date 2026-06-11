@@ -10,6 +10,9 @@ const includeResponsavel = {
   subitens: {
     orderBy: { criadoEm: "asc" },
   },
+  tags: {
+    include: { tag: true },
+  },
 } as const
 
 export async function findAllOportunidades(filtroUsuario?: string) {
@@ -123,16 +126,28 @@ export async function findOportunidadeById(id: string) {
 export async function createOportunidade(
   data: OportunidadeInput & { createdById: string }
 ) {
+  const { tagIds, ...rest } = data
   return db.oportunidade.create({
-    data,
+    data: {
+      ...rest,
+      ...(tagIds && tagIds.length
+        ? { tags: { create: tagIds.map((tagId) => ({ tagId })) } }
+        : {}),
+    },
     include: includeResponsavel,
   })
 }
 
 export async function updateOportunidade(id: string, data: OportunidadeInput) {
+  const { tagIds, ...rest } = data
   return db.oportunidade.update({
     where: { id },
-    data,
+    data: {
+      ...rest,
+      ...(tagIds !== undefined
+        ? { tags: { deleteMany: {}, create: tagIds.map((tagId) => ({ tagId })) } }
+        : {}),
+    },
     include: includeResponsavel,
   })
 }
