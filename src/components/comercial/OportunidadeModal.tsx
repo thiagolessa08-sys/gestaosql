@@ -121,7 +121,7 @@ export function OportunidadeModal({ mode, oportunidade, etapaInicial, users, pro
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? "Nova Oportunidade" : "Editar Oportunidade"}</DialogTitle>
         </DialogHeader>
