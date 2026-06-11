@@ -107,15 +107,25 @@ export async function getRelatorioOrigemLeadAction(origem: string) {
   return findOportunidadesPorOrigemLead(origem)
 }
 
+/** Parseia "YYYY-MM-DD" como data local (meia-noite no fuso do servidor). */
+function parseLocalDate(value?: string): Date | undefined {
+  if (!value) return undefined
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim())
+  if (!match) return undefined
+  const [, y, m, d] = match
+  return new Date(Number(y), Number(m) - 1, Number(d))
+}
+
 export async function addSubitemAction(
   oportunidadeId: string,
-  texto: string
+  texto: string,
+  data?: string
 ): Promise<ActionResult<{ id: string; texto: string; feito: boolean; criadoEm: Date; concluidoEm: Date | null }>> {
   try {
     await getRequiredSession()
     const t = texto.trim()
     if (!t) return { success: false, error: "Texto é obrigatório." }
-    const item = await service.addSubitem(oportunidadeId, t)
+    const item = await service.addSubitem(oportunidadeId, t, parseLocalDate(data))
     revalidatePath("/comercial")
     return {
       success: true,
@@ -129,6 +139,22 @@ export async function addSubitemAction(
     }
   } catch {
     return { success: false, error: "Erro ao adicionar atividade." }
+  }
+}
+
+export async function updateSubitemDataAction(
+  id: string,
+  data: string
+): Promise<ActionResult<{ criadoEm: Date }>> {
+  try {
+    await getRequiredSession()
+    const parsed = parseLocalDate(data)
+    if (!parsed) return { success: false, error: "Data inválida." }
+    const item = await service.updateSubitemData(id, parsed)
+    revalidatePath("/comercial")
+    return { success: true, data: { criadoEm: item.criadoEm } }
+  } catch {
+    return { success: false, error: "Erro ao atualizar data." }
   }
 }
 

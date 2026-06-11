@@ -163,8 +163,14 @@ export async function deleteOportunidade(id: string) {
   return db.oportunidade.delete({ where: { id } })
 }
 
-export async function addSubitem(oportunidadeId: string, texto: string) {
-  return db.oportunidadeSubitem.create({ data: { oportunidadeId, texto } })
+export async function addSubitem(oportunidadeId: string, texto: string, criadoEm?: Date) {
+  return db.oportunidadeSubitem.create({
+    data: { oportunidadeId, texto, ...(criadoEm ? { criadoEm } : {}) },
+  })
+}
+
+export async function updateSubitemData(id: string, criadoEm: Date) {
+  return db.oportunidadeSubitem.update({ where: { id }, data: { criadoEm } })
 }
 
 export async function toggleSubitem(id: string) {

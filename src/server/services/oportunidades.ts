@@ -44,8 +44,12 @@ export async function deleteOportunidade(id: string) {
   return repo.deleteOportunidade(id)
 }
 
-export async function addSubitem(oportunidadeId: string, texto: string) {
-  return repo.addSubitem(oportunidadeId, texto)
+export async function addSubitem(oportunidadeId: string, texto: string, criadoEm?: Date) {
+  return repo.addSubitem(oportunidadeId, texto, criadoEm)
+}
+
+export async function updateSubitemData(id: string, criadoEm: Date) {
+  return repo.updateSubitemData(id, criadoEm)
 }
 
 export async function toggleSubitem(id: string) {
