@@ -24,10 +24,11 @@ interface CreateInvitationInput {
 export async function createInvitation(input: CreateInvitationInput) {
   const token = randomBytes(32).toString("hex")
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+  const email = input.email.trim().toLowerCase()
 
   const invitation = await createInvitationRecord({
     projectId: input.projectId,
-    email: input.email,
+    email,
     role: input.role,
     invitedById: input.invitedById,
     token,

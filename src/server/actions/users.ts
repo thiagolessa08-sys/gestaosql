@@ -70,7 +70,7 @@ export async function changePasswordAction(formData: FormData): Promise<ActionRe
 
 const adminCreateUserSchema = z.object({
   name: z.string().min(1, "Nome obrigatório").max(100),
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Email inválido").transform((e) => e.trim().toLowerCase()),
   password: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
   tipo: z.enum(["ADMIN_TOTAL", "ADMIN_PROJETO", "ADMIN_COMERCIAL", "MEMBRO_PROJETO", "MEMBRO_COMERCIAL"]).default("MEMBRO_PROJETO"),
 })

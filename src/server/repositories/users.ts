@@ -2,8 +2,8 @@ import { db } from "@/server/db"
 import { hash } from "bcryptjs"
 
 export async function findUserByEmail(email: string) {
-  return db.user.findUnique({
-    where: { email, deletedAt: null },
+  return db.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" }, deletedAt: null },
     select: {
       id: true,
       name: true,
@@ -17,8 +17,9 @@ export async function findUserByEmail(email: string) {
 }
 
 export async function findAnyUserByEmail(email: string) {
-  return db.user.findUnique({
-    where: { email },
+  // Case-insensitive: pega duplicados pré-existentes gravados em maiúsculas
+  return db.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
     select: {
       id: true,
       email: true,
@@ -107,7 +108,7 @@ export async function createUser(data: {
   return db.user.create({
     data: {
       name: data.name,
-      email: data.email,
+      email: data.email.trim().toLowerCase(),
       passwordHash,
       isSystemAdmin: data.isSystemAdmin ?? false,
       perfil: data.perfil ?? "MEMBRO_PROJETO",

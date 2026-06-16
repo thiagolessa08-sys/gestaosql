@@ -18,8 +18,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = loginSchema.safeParse(credentials)
         if (!parsed.success) return null
 
-        const user = await db.user.findUnique({
-          where: { email: parsed.data.email, deletedAt: null },
+        const user = await db.user.findFirst({
+          where: {
+            email: { equals: parsed.data.email.trim(), mode: "insensitive" },
+            deletedAt: null,
+          },
           select: {
             id: true,
             name: true,
