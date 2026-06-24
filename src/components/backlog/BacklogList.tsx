@@ -51,6 +51,7 @@ interface Props {
   canMove: boolean
   canArchive: boolean
   currentUserId: string
+  openCardId?: string
 }
 
 type PriorityFilter = "ALL" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
@@ -63,10 +64,11 @@ export function BacklogList({
   canMove,
   canArchive,
   currentUserId,
+  openCardId: initialOpenCardId,
 }: Props) {
   const router = useRouter()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [openCardId, setOpenCardId] = useState<string | null>(null)
+  const [openCardId, setOpenCardId] = useState<string | null>(initialOpenCardId ?? null)
   const [searchQuery, setSearchQuery] = useState("")
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("ALL")
   const [assigneeFilter, setAssigneeFilter] = useState<string>("ALL")

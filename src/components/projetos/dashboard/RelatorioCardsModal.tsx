@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getCardsPorUsuarioAction, getCardsPorProjetoAction } from "@/server/actions/projetosDashboard"
 
@@ -28,9 +29,19 @@ interface Props {
 }
 
 export function RelatorioCardsModal({ titulo, avatar, loader, open, onClose }: Props) {
+  const router = useRouter()
   const [cards, setCards] = useState<Card[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+
+  function abrirCard(c: Card) {
+    const slug = c.project.slug
+    const url = c.sprintId
+      ? `/projetos/${slug}/sprints/${c.sprintId}/board?card=${c.id}`
+      : `/projetos/${slug}/backlog?card=${c.id}`
+    onClose()
+    router.push(url)
+  }
 
   useEffect(() => {
     if (!open) return
@@ -93,7 +104,12 @@ export function RelatorioCardsModal({ titulo, avatar, loader, open, onClose }: P
                   const prazo = c.dueDate ? new Date(c.dueDate).toLocaleDateString("pt-BR") : null
                   const atrasado = c.dueDate && new Date(c.dueDate) < new Date() && c.status !== "DONE"
                   return (
-                    <div key={c.id} className="rounded-xl border bg-card p-3.5">
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => abrirCard(c)}
+                      className="w-full text-left rounded-xl border bg-card p-3.5 hover:border-[#3a55e6]/50 hover:shadow-sm transition cursor-pointer"
+                    >
                       <div className="flex items-start justify-between gap-3 flex-wrap">
                         <div className="min-w-0">
                           <p className="font-semibold text-[14px] text-[#141c30] truncate">{c.title}</p>
@@ -115,7 +131,7 @@ export function RelatorioCardsModal({ titulo, avatar, loader, open, onClose }: P
                           </span>
                         )}
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
               </div>

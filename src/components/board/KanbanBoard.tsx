@@ -71,9 +71,10 @@ interface Props {
   sprintName?: string
   activities: MainActivity[]
   readOnly?: boolean
+  openCardId?: string
 }
 
-export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, sprintName, activities, readOnly = false }: Props) {
+export function KanbanBoard({ initialCards, members, allTags, currentUserId, projectId, sprintId, sprintName, activities, readOnly = false, openCardId }: Props) {
   const [cards, setCards] = useState<Card[]>(initialCards)
   const [activeCard, setActiveCard] = useState<Card | null>(null)
   // Store the status BEFORE drag so handleDragEnd can compare correctly
@@ -84,7 +85,7 @@ export function KanbanBoard({ initialCards, members, allTags, currentUserId, pro
   useEffect(() => {
     setCards(initialCards)
   }, [initialCards])
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(openCardId ?? null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })

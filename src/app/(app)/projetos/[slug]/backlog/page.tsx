@@ -12,13 +12,15 @@ import { CardForm } from "@/components/cards/CardForm"
 
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ card?: string }>
 }
 
-export default async function BacklogPage({ params }: Props) {
+export default async function BacklogPage({ params, searchParams }: Props) {
   const session = await auth()
   if (!session) redirect("/login")
 
   const { slug } = await params
+  const { card: openCardId } = await searchParams
   const project = await findProjectBySlug(slug)
   if (!project) notFound()
 
@@ -61,6 +63,7 @@ export default async function BacklogPage({ params }: Props) {
             canMove={canMove}
             canArchive={canArchive}
             currentUserId={session.user.id}
+            openCardId={openCardId}
           />
         </div>
 

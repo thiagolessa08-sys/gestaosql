@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 
 interface Props {
   params: Promise<{ slug: string; id: string }>
+  searchParams: Promise<{ card?: string }>
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -25,11 +26,12 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: "Cancelada",
 }
 
-export default async function BoardPage({ params }: Props) {
+export default async function BoardPage({ params, searchParams }: Props) {
   const session = await auth()
   if (!session) redirect("/login")
 
   const { slug, id } = await params
+  const { card: openCardId } = await searchParams
   const project = await findProjectBySlug(slug)
   if (!project) notFound()
 
@@ -98,6 +100,7 @@ export default async function BoardPage({ params }: Props) {
         sprintName={sprint.name}
         activities={activities}
         readOnly={sprint.status === "COMPLETED" || sprint.status === "CANCELLED"}
+        openCardId={openCardId}
       />
     </div>
   )
