@@ -115,6 +115,7 @@ function SprintCard({
   const router = useRouter()
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [closeDialog, setCloseDialog] = useState(false)
+  const [closeAction, setCloseAction] = useState<"finalizar" | "cancelar">("finalizar")
   const [destinationSprintId, setDestinationSprintId] = useState("none")
   const [activitiesOpen, setActivitiesOpen] = useState(false)
   const [editDialog, setEditDialog] = useState(false)
@@ -145,10 +146,18 @@ function SprintCard({
     router.refresh()
   }
 
+  function openClose(acao: "finalizar" | "cancelar") {
+    setCloseAction(acao)
+    setDestinationSprintId("none")
+    setError(null)
+    setCloseDialog(true)
+  }
+
   async function handleClose() {
     setLoadingAction("close")
     const formData = new FormData()
     if (destinationSprintId !== "none") formData.set("destinationSprintId", destinationSprintId)
+    formData.set("acao", closeAction)
     const result = await closeSprintAction(sprint.id, formData)
     setLoadingAction(null)
     setCloseDialog(false)
@@ -239,15 +248,26 @@ function SprintCard({
               </Button>
             )}
             {canManage && (isActive || isPlanned) && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                onClick={() => { setCloseDialog(true); setDestinationSprintId("none") }}
-                disabled={loadingAction === "close"}
-              >
-                Encerrar sprint
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-emerald-700 border-emerald-600/30 hover:bg-emerald-600/10"
+                  onClick={() => openClose("finalizar")}
+                  disabled={loadingAction === "close"}
+                >
+                  Finalizar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                  onClick={() => openClose("cancelar")}
+                  disabled={loadingAction === "close"}
+                >
+                  Cancelar
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -308,9 +328,11 @@ function SprintCard({
       <Dialog open={closeDialog} onOpenChange={(o) => !o && setCloseDialog(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Encerrar sprint</DialogTitle>
+            <DialogTitle>{closeAction === "cancelar" ? "Cancelar sprint" : "Finalizar sprint"}</DialogTitle>
             <DialogDescription>
-              Cards não finalizados serão movidos. Escolha o destino.
+              {closeAction === "cancelar"
+                ? "A sprint será marcada como cancelada. Cards não finalizados serão movidos."
+                : "A sprint será marcada como finalizada. Cards não finalizados serão movidos."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -326,9 +348,15 @@ function SprintCard({
             </Select>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCloseDialog(false)}>Cancelar</Button>
-            <Button onClick={handleClose} disabled={loadingAction === "close"}>
-              {loadingAction === "close" ? "Encerrando..." : "Encerrar sprint"}
+            <Button variant="outline" onClick={() => setCloseDialog(false)}>Voltar</Button>
+            <Button
+              onClick={handleClose}
+              disabled={loadingAction === "close"}
+              className={closeAction === "cancelar" ? "bg-destructive hover:bg-destructive/90" : ""}
+            >
+              {loadingAction === "close"
+                ? "Processando..."
+                : closeAction === "cancelar" ? "Cancelar sprint" : "Finalizar sprint"}
             </Button>
           </DialogFooter>
         </DialogContent>

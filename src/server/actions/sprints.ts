@@ -109,8 +109,10 @@ export async function closeSprintAction(
   const parsed = closeSprintSchema.safeParse(raw)
   if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? "Dados inválidos." }
 
+  const status = formData.get("acao") === "cancelar" ? "CANCELLED" : "COMPLETED"
+
   try {
-    await closeSprint({ sprintId, destinationSprintId: parsed.data.destinationSprintId })
+    await closeSprint({ sprintId, destinationSprintId: parsed.data.destinationSprintId, status })
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Erro ao encerrar sprint." }
   }

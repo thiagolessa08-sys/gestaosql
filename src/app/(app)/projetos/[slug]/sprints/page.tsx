@@ -27,9 +27,8 @@ export default async function SprintsPage({ params }: Props) {
 
   const activeSprint = sprints.find((s) => s.status === "ACTIVE") ?? null
   const plannedSprints = sprints.filter((s) => s.status === "PLANNED")
-  const pastSprints = sprints.filter(
-    (s) => s.status === "COMPLETED" || s.status === "CANCELLED"
-  )
+  const finalizadas = sprints.filter((s) => s.status === "COMPLETED")
+  const canceladas = sprints.filter((s) => s.status === "CANCELLED")
 
   return (
     <div>
@@ -79,11 +78,25 @@ export default async function SprintsPage({ params }: Props) {
             </div>
           )}
 
-          {/* Encerradas */}
-          {pastSprints.length > 0 && (
-            <CollapsibleEncerradas count={pastSprints.length}>
+          {/* Finalizadas */}
+          {finalizadas.length > 0 && (
+            <CollapsibleEncerradas label="finalizadas" count={finalizadas.length}>
               <SprintList
-                sprints={pastSprints}
+                sprints={finalizadas}
+                projectId={project.id}
+                projectSlug={slug}
+                canManage={false}
+                plannedSprints={[]}
+                hasActiveSprint={!!activeSprint}
+              />
+            </CollapsibleEncerradas>
+          )}
+
+          {/* Canceladas */}
+          {canceladas.length > 0 && (
+            <CollapsibleEncerradas label="canceladas" count={canceladas.length}>
+              <SprintList
+                sprints={canceladas}
                 projectId={project.id}
                 projectSlug={slug}
                 canManage={false}

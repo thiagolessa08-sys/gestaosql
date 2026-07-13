@@ -5,6 +5,7 @@ import {
   updateSprint as updateSprintRecord,
   startSprint as startSprintRecord,
   closeSprint as closeSprintRecord,
+  cancelSprint as cancelSprintRecord,
 } from "@/server/repositories/sprints"
 import { findProjectById } from "@/server/repositories/projects"
 import { notifySprintStarted, notifySprintEnded } from "@/server/services/notifications"
@@ -60,9 +61,10 @@ export async function startSprint(sprintId: string) {
 interface CloseSprintInput {
   sprintId: string
   destinationSprintId?: string
+  status?: "COMPLETED" | "CANCELLED"
 }
 
-export async function closeSprint({ sprintId, destinationSprintId }: CloseSprintInput) {
+export async function closeSprint({ sprintId, destinationSprintId, status = "COMPLETED" }: CloseSprintInput) {
   const sprint = await findSprintById(sprintId)
   if (!sprint) throw new Error("Sprint não encontrada")
   if (sprint.status !== "ACTIVE" && sprint.status !== "PLANNED") {
@@ -80,7 +82,9 @@ export async function closeSprint({ sprintId, destinationSprintId }: CloseSprint
     },
   })
 
-  const result = await closeSprintRecord(sprintId)
+  const result = status === "CANCELLED"
+    ? await cancelSprintRecord(sprintId)
+    : await closeSprintRecord(sprintId)
 
   try {
     const project = await findProjectById(sprint.projectId)

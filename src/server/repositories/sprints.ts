@@ -80,3 +80,10 @@ export async function closeSprint(id: string) {
     data: { status: "COMPLETED", endedAt: new Date() },
   })
 }
+
+export async function cancelSprint(id: string) {
+  return db.sprint.update({
+    where: { id },
+    data: { status: "CANCELLED", endedAt: new Date() },
+  })
+}
