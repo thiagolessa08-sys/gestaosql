@@ -6,6 +6,7 @@ import { getMemberRole } from "@/server/permissions"
 import { isAdminProjetos } from "@/lib/acesso"
 import { SprintList } from "@/components/sprints/SprintList"
 import { CreateSprintForm } from "@/components/sprints/CreateSprintForm"
+import { CollapsibleEncerradas } from "@/components/sprints/CollapsibleEncerradas"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -80,10 +81,7 @@ export default async function SprintsPage({ params }: Props) {
 
           {/* Encerradas */}
           {pastSprints.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-                Encerradas
-              </p>
+            <CollapsibleEncerradas count={pastSprints.length}>
               <SprintList
                 sprints={pastSprints}
                 projectId={project.id}
@@ -92,7 +90,7 @@ export default async function SprintsPage({ params }: Props) {
                 plannedSprints={[]}
                 hasActiveSprint={!!activeSprint}
               />
-            </div>
+            </CollapsibleEncerradas>
           )}
 
           {sprints.length === 0 && (
